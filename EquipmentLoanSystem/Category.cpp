@@ -1,24 +1,87 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
 #include "Category.h"
 
-Category::Category(std::string categoryName)
+bool alphabeticalAscending(std::string *lhs, std::string *rhs) { return lhs->compare(*rhs) < 0; }
+
+// for comparing objects pointed by pointers in a pointer vector
+template <typename T>
+struct pointer_values_equal
 {
-	Category::categoryName = categoryName;
+	const T to_find;
+
+	bool operator()(const T* other) const
+	{
+		return to_find == *other;
+	}
+};
+Category::Category()
+{
+	Category::categoryVector = new std::vector<std::string*>();
+}
+Category::Category(std::vector<std::string*> &categoryVector)
+{
+	Category::categoryVector = &categoryVector;
 	//std::vector<std::string> *globalCategories;
 	//globalCategories = new std::vector<std::string>();
 	//globalCategories->push_back(categoryName);
 	//Category::categories = new std::vector<std::string>();
 	//Category::categories->push_back(categoryName);
 }
-int Category::size() const { return 0; }
-void Category::display(int start, int end) const {}
-void Category::add(std::string category) { }
-void Category::edit(std::string oldCategory, std::string newCategory) {}
-void Category::remove(std::string category) {}
-std::string Category::getCategory() { return categoryName; }
-bool operator==(const Category &lhs, const Category &rhs)
+int Category::size() const { return categoryVector->size(); }
+void Category::displayAll() const
 {
-	return lhs.categoryName == rhs.categoryName;
+	std::vector<std::string*>::iterator it;
+	for (it = categoryVector->begin(); it != categoryVector->end(); ++it)
+	{
+		std::cout << **it << std::endl;
+	}
 }
+void Category::displayBetween(int start, int end) const
+{
+	std::vector<std::string*>::iterator it;
+	for (it = categoryVector->begin() + start; it != categoryVector->begin() + end; ++it)
+	{
+		std::cout << **it << std::endl;
+	}
+}
+void Category::add(std::string *category)
+{
+	Category::categoryVector->push_back(category);
+	std::sort(categoryVector->begin(), categoryVector->end(), alphabeticalAscending);
+}
+void Category::edit(std::string oldCategory, std::string newCategory)
+{
+	pointer_values_equal<std::string> eq = { oldCategory };
+	std::vector<std::string*>::iterator it = find_if(Category::categoryVector->begin(), Category::categoryVector->end(), eq);
+	if (it != Category::categoryVector->end()) //if found oldCategory within categoryVector
+	{
+		**it = newCategory;
+	}
+	else
+	{
+		throw std::exception("oldCategory is not found within categoryVector");
+	}
+	std::sort(categoryVector->begin(), categoryVector->end(), alphabeticalAscending);
+}
+void Category::remove(std::string category)
+{
+	pointer_values_equal<std::string> eq = { category };
+	std::vector<std::string*>::iterator it = find_if(Category::categoryVector->begin(), Category::categoryVector->end(), eq);
+	if (it != Category::categoryVector->end()) //if found category within categoryVector
+	{
+		categoryVector->erase(it);
+	}
+	else
+	{
+		throw std::exception("category is not found within categoryVector");
+	}
+	std::sort(categoryVector->begin(), categoryVector->end(), alphabeticalAscending);
+}
+std::vector<std::string*>* Category::getCategoryVector() { return categoryVector; }
+//bool operator==(const Category &lhs, const Category &rhs)
+//{
+//	return lhs.categoryVector == rhs.categoryVector;
+//}
 //const std::vector<Category> Category::categoryVector = new std::vector<Category>();

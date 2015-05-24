@@ -7,6 +7,7 @@
 Inventory::Inventory()
 {
 	itemCollection = new std::list<Item>();
+	CategoryItems categoryItems();
 	/*std::vector<Item>::iterator it;
 	for (int i = 0; i < 5; i++)
 	{*/

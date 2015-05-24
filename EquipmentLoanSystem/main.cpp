@@ -7,7 +7,7 @@
 #include "Item.h"
 using namespace std;
 Inventory *globalInventory;
-std::vector<Category*> *globalCategories;
+Category *globalCategories;
 
 void searchItem()
 {
@@ -21,11 +21,11 @@ void searchItem()
 template <typename T>
 struct pointer_values_equal
 {
-	const T* to_find;
+	const T *to_find;
 
 	bool operator()(const T* other) const
 	{
-		return *to_find == *other;
+		return to_find->compare(*other) == 0;
 	}
 };
 
@@ -42,43 +42,52 @@ void addItem()
 	std::cin >> categoryInput;
 	categoryInput += ",";
 	size_t pos = 0;
-	std::string token;
-	vector<Category*> *categoriesFromInput = new vector<Category*>();
+	std::string *token;
+	std::vector<std::string*> *categoriesFromInput = new std::vector<std::string*>();
 	while ((pos = categoryInput.find(",")) != std::string::npos)
 	{
-		token = categoryInput.substr(0, pos);
-		Category *category = new Category(token);
-		pointer_values_equal<Category> eq = { category };
-		std::vector<Category*>::iterator gcit = find_if(globalCategories->begin(), globalCategories->end(), eq);
-		std::vector<Category*>::iterator cfiit = find_if(categoriesFromInput->begin(), categoriesFromInput->end(), eq);
+		token = new std::string(categoryInput.substr(0, pos));
+		//pointer_values_equal<string> eq = { token };
+		std::vector<string*>::iterator gcit =
+			find_if(
+			globalCategories->getCategoryVector()->begin(),
+			globalCategories->getCategoryVector()->end(),
+			[&token](const std::string *p)
+			{ return *token == *p; });
+		std::vector<string*>::iterator cfiit =
+			find_if(
+			categoriesFromInput->begin(),
+			categoriesFromInput->end(),
+			[&token](const std::string *p)
+			{ return *token == *p; });
 		// if not in categoriesfrominput (not repetitive)
 		if (cfiit == categoriesFromInput->end())
 		{
 			// if not found in globalCategories
-			if (gcit == globalCategories->end())
+			if (gcit == globalCategories->getCategoryVector()->end())
 			{
-				globalCategories->push_back(category);
-				categoriesFromInput->push_back(category);
+				globalCategories->add(token);
+				categoriesFromInput->push_back(token);
 				std::cout << "added " << token << std::endl;
 			}
 			else //if found in global categories
 			{
 				categoriesFromInput->push_back(*gcit);
-				std::cout << "added " << token << " to categoriesfrominput" << std::endl;
+				std::cout << "added " << *gcit << " to categoriesfrominput" << std::endl;
 			}
 		}
-		gcit = globalCategories->begin();
+		gcit = globalCategories->getCategoryVector()->begin();
 		cfiit = categoriesFromInput->begin();
 		//as each category is added, it is erased from the input string
 		categoryInput.erase(0, pos + 1);
 	}
 
-	globalInventory->add(*(new Item(nameInput, categoriesFromInput)));
+	globalInventory->add(*(new Item(nameInput, *categoriesFromInput)));
 }
 int main()
 {
 	globalInventory = new Inventory();
-	globalCategories = new std::vector<Category*>();
+	globalCategories = new Category();
 	char choice = '0';
 	while (choice != '5')
 	{

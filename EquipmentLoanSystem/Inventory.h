@@ -15,4 +15,9 @@ public:
 	void edit(Item item);
 private:
 	std::list<Item> *itemCollection;
+	class CategoryItems
+	{
+		std::string *category;
+		std::vector<Item*> *items;
+	} categoryItems;
 };

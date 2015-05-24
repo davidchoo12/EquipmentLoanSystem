@@ -1,15 +1,11 @@
 #include <iostream>
 #include "Item.h"
 
-bool alphabeticalAscending(Category *lhs, Category *rhs) { return lhs->getCategory().compare(rhs->getCategory()) < 0; }
-
-Item::Item(std::string name, std::vector<Category*> *category)
+Item::Item(std::string name, std::vector<std::string*> &category)
 {
 	Item::name = name;
 	Item::onLoan = false;
-	Item::itemCategories = new std::vector<Category*>();
-	std::sort(category->begin(), category->end(), alphabeticalAscending);
-	itemCategories = category;
+	Item::itemCategories = new Category(category);
 	//std::vector<int> myvector(myints, myints + 4);
 	//std::vector<int>::iterator it;
 
@@ -28,21 +24,18 @@ void Item::printItem() const
 {
 	std::cout << Item::name << std::endl;
 	std::cout << "Categories: ";
-	for (std::vector<Category*>::iterator i = itemCategories->begin(); i != itemCategories->end(); ++i)
-	{
-		std::cout << (*i)->getCategory() << ", ";
-	}
+	Item::itemCategories->displayAll();
 }
+//TODO find out the purpose of this method
 bool Item::compareItem(Item &item) const
 {
 	return Item::name == item.name;
 }
-void Item::addCategory(Category *category)
+void Item::addCategory(std::string *category)
 {
-	itemCategories->push_back(category);
-	std::sort(itemCategories->begin(), itemCategories->end(), alphabeticalAscending);
+	itemCategories->add(category);
 }
-std::vector<Category*> Item::getCategories() const
+Category Item::getCategories() const
 {
 	return *itemCategories;
 }
