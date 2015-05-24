@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <algorithm>
 #include "Category.h"
 
@@ -23,28 +22,17 @@ Category::Category()
 Category::Category(std::vector<std::string*> &categoryVector)
 {
 	Category::categoryVector = &categoryVector;
-	//std::vector<std::string> *globalCategories;
-	//globalCategories = new std::vector<std::string>();
-	//globalCategories->push_back(categoryName);
-	//Category::categories = new std::vector<std::string>();
-	//Category::categories->push_back(categoryName);
 }
-int Category::size() const { return categoryVector->size(); }
 void Category::displayAll() const
 {
 	std::vector<std::string*>::iterator it;
 	for (it = categoryVector->begin(); it != categoryVector->end(); ++it)
 	{
-		std::cout << **it << std::endl;
+		std::cout << **it;
+		std::string delimiter = (it != categoryVector->end() - 1 )? ", " : "";
+		std::cout << delimiter;
 	}
-}
-void Category::displayBetween(int start, int end) const
-{
-	std::vector<std::string*>::iterator it;
-	for (it = categoryVector->begin() + start; it != categoryVector->begin() + end; ++it)
-	{
-		std::cout << **it << std::endl;
-	}
+	std::cout << std::endl;
 }
 void Category::add(std::string *category)
 {
@@ -65,7 +53,7 @@ void Category::edit(std::string oldCategory, std::string newCategory)
 	}
 	std::sort(categoryVector->begin(), categoryVector->end(), alphabeticalAscending);
 }
-void Category::remove(std::string category)
+void Category::remove(std::string &category)
 {
 	pointer_values_equal<std::string> eq = { category };
 	std::vector<std::string*>::iterator it = find_if(Category::categoryVector->begin(), Category::categoryVector->end(), eq);
@@ -79,6 +67,16 @@ void Category::remove(std::string category)
 	}
 	std::sort(categoryVector->begin(), categoryVector->end(), alphabeticalAscending);
 }
+//std::vector<std::string*>::iterator Category::findIterator(std::string *category)
+//{
+//	return find_if(
+//		categoryVector->begin(),
+//		categoryVector->end(),
+//		[&category](const std::string *p)
+//	{
+//		return *category == *p;
+//	});
+//}
 std::vector<std::string*>* Category::getCategoryVector() { return categoryVector; }
 //bool operator==(const Category &lhs, const Category &rhs)
 //{

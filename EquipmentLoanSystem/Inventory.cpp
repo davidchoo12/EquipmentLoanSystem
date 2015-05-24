@@ -1,20 +1,12 @@
 #include <iostream>
-#include <list>
-#include <string>
-#include "Item.h"
+#include <algorithm>
 #include "Inventory.h"
 
 Inventory::Inventory()
 {
 	itemCollection = new std::list<Item>();
-	CategoryItems categoryItems();
-	/*std::vector<Item>::iterator it;
-	for (int i = 0; i < 5; i++)
-	{*/
-	/*itemCollection->push_back(*(new Item("a", "cat1")));
-	itemCollection->push_back(*(new Item("b", "cat1")));
-	itemCollection->push_back(*(new Item("c", "cat1")));*/
-	//}
+	Inventory::categoryItemsVector = new std::vector<CategoryItems>();
+	globalCategories = new Category();
 }
 int Inventory::size() const
 {
@@ -22,32 +14,89 @@ int Inventory::size() const
 }
 void Inventory::displayAll() const
 {
-	std::list<Item>::iterator it;
-	for (it = itemCollection->begin(); it != itemCollection->end(); ++it)
-	{
-		it->printItem();
-		std::cout << std::endl;
-	}
-}
-void Inventory::displayBetween(int start, int end) const
-{
-	if (start >= 0 && start <= itemCollection->size() && end >= 0 && end <= itemCollection->size())
-	{
-		std::list<Item>::iterator it1 = itemCollection->begin();
-		advance(it1, start);
-		for (int i = start; i < end; i++)
-		{
-			it1->printItem();
-			std::cout << std::endl;
-			it1++;
-		}
-	}
+	if (categoryItemsVector->size() == 0)
+		std::cout << "No items found. You can add an item by entering 2." << std::endl;
 	else
 	{
-		throw std::exception("out of range");
+		std::cout << "Total Items: " << itemCollection->size() << std::endl;
+		std::list<Item>::iterator it;
+		for (it = itemCollection->begin(); it != itemCollection->end(); ++it)
+		{
+			it->printItem();
+			std::cout << std::endl;
+		}
 	}
 }
 void Inventory::add(Item &item)
 {
 	itemCollection->push_back(item);
+	//updates the categoryItemsVector
+	std::vector<std::string*>::iterator it;
+	std::vector<CategoryItems>::iterator it2;
+	for (it = item.getCategories().getCategoryVector()->begin(); it != item.getCategories().getCategoryVector()->end(); ++it)
+	{
+		for (it2 = categoryItemsVector->begin(); it2 != categoryItemsVector->end(); ++it2)
+		{
+			//if category of the item matches a category in a categoryItems, add the item to the corresponding items vector
+			if((*it) == it2->category)
+				it2->items->push_back(&item);
+		}
+	}
+}
+void Inventory::displaySearch(std::string &searchKey)
+{
+	std::list<Item>::iterator it;
+	for (it = itemCollection->begin(); it != itemCollection->end(); ++it)
+	{
+		//if searchKey is a substring of the item's name
+		if (it->getName().find(searchKey) != std::string::npos)
+			it->printItem();
+	}
+}
+//notice that i use the categoryItemsVector instead of searching one by one from the itemCollection list
+void Inventory::displaySearchByCategory(std::string &searchKey)
+{
+	std::vector<CategoryItems>::iterator it;
+	std::vector<Item*>::iterator it2;
+	for (it = categoryItemsVector->begin(); it != categoryItemsVector->end(); ++it)
+	{
+		if (it->category->find(searchKey) != std::string::npos)
+		{
+			for (it2 = it->items->begin(); it2 != it->items->end(); ++it2)
+			{
+				(*it2)->printItem();
+			}
+		}
+	}
+}
+Category* Inventory::getAllCategories() const
+{
+	return globalCategories;
+}
+std::string* Inventory::decideWithAllCategories(std::string* category)
+{
+	std::vector<std::string*>::iterator gcit =
+		find_if(
+		globalCategories->getCategoryVector()->begin(),
+		globalCategories->getCategoryVector()->end(),
+		[&category](const std::string *p) //lambda expression
+	{
+		return *category == *p;
+	});
+	//if not found in global categories
+	if (gcit == globalCategories->getCategoryVector()->end())
+	{
+		globalCategories->add(category);
+		categoryItemsVector->push_back(*(new CategoryItems(category)));
+		return category;
+	}
+	else //if found in global categories
+	{
+		return *gcit;
+	}
+}
+Inventory::CategoryItems::CategoryItems(std::string *category)
+{
+	Inventory::CategoryItems::category = category;
+	Inventory::CategoryItems::items = new std::vector<Item*>();
 }

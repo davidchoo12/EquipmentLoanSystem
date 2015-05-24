@@ -5,100 +5,122 @@
 #include "Inventory.h"
 #include "Category.h"
 #include "Item.h"
-using namespace std;
+
 Inventory *globalInventory;
-Category *globalCategories;
 
 void searchItem()
 {
-
-}
-
-
-
-
-// for comparing objects pointed by pointers in a pointer vector
-template <typename T>
-struct pointer_values_equal
-{
-	const T *to_find;
-
-	bool operator()(const T* other) const
+	char repeat = 'y';
+	do
 	{
-		return to_find->compare(*other) == 0;
-	}
-};
+		char choice;
+		std::cout << "Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
+		std::cout << "1. Item name" << std::endl;
+		std::cout << "2. Category" << std::endl;
+		std::cout << "3. Display all Items" << std::endl;
+		std::cin >> choice;
+		if (choice == '0')
+			goto repeatConfirmation;
+		else if (choice == '1')
+		{
+			std::string searchKey;
+			std::cout << "Enter the Item name: ";
+			std::cin >> searchKey;
+			globalInventory->displaySearch(searchKey);
+		}
+		else if (choice == '2')
+		{
+			std::string searchKey;
+			std::cout << "Enter the Category: ";
+			std::cin >> searchKey;
+			globalInventory->displaySearchByCategory(searchKey);
+		}
+		else if (choice == '3')
+		{
+			globalInventory->displayAll();
+		}
+		else
+			std::cout << "Invalid Char" << std::endl;
+
+		repeatConfirmation:
+		std::cout << "Search another item again? y/n" << std::endl;
+		std::cin >> repeat;
+		repeat = tolower(repeat);
+	} while (repeat == 'y');
+}
 
 void addItem()
 {
-	string nameInput;
-	string categoryInput;
-	std::cout << std::endl << "Please enter item details" << std::endl;
-	std::cout << "Name: ";
-	//std::getline(std::cin, nameInput, '\n');
-	std::cin >> nameInput;
-	std::cout << "Category: (use commas to delimit multiple values)" << std::endl;
-	//std::getline(std::cin, categoryInput);
-	std::cin >> categoryInput;
-	categoryInput += ",";
-	size_t pos = 0;
-	std::string *token;
-	std::vector<std::string*> *categoriesFromInput = new std::vector<std::string*>();
-	while ((pos = categoryInput.find(",")) != std::string::npos)
+	char repeat = 'y';
+	do
 	{
-		token = new std::string(categoryInput.substr(0, pos));
-		//pointer_values_equal<string> eq = { token };
-		std::vector<string*>::iterator gcit =
-			find_if(
-			globalCategories->getCategoryVector()->begin(),
-			globalCategories->getCategoryVector()->end(),
-			[&token](const std::string *p)
-			{ return *token == *p; });
-		std::vector<string*>::iterator cfiit =
-			find_if(
-			categoriesFromInput->begin(),
-			categoriesFromInput->end(),
-			[&token](const std::string *p)
-			{ return *token == *p; });
-		// if not in categoriesfrominput (not repetitive)
-		if (cfiit == categoriesFromInput->end())
+		std::string nameInput;
+		std::string categoryInput;
+		std::cout << "Please enter item details" << std::endl;
+		std::cout << "Name (without spaces, not working with spaces yet) (enter 0 to go back): ";
+		std::cin >> nameInput;
+		if (nameInput == "0") goto repeatConfirmation;
+		std::cout << "Category: (use commas to delimit multiple values, no spaces in after commas)" << std::endl;
+		std::cin >> categoryInput;
+		char confirm;
+		std::cout << "Are you sure? y/n" << std::endl;
+		std::cin >> confirm;
+		confirm = tolower(confirm);
+		if (confirm == 'y')
 		{
-			// if not found in globalCategories
-			if (gcit == globalCategories->getCategoryVector()->end())
+			categoryInput += ","; // so that the last categoryInput can be obtained (just a simple workaround)
+			size_t pos = 0;
+			std::string *token;
+			std::vector<std::string*> *categoriesFromInput = new std::vector<std::string*>();
+			while ((pos = categoryInput.find(",")) != std::string::npos)
 			{
-				globalCategories->add(token);
-				categoriesFromInput->push_back(token);
-				std::cout << "added " << token << std::endl;
+				token = new std::string(categoryInput.substr(0, pos));
+				std::vector<std::string*>::iterator cfiit =
+					std::find_if(
+					categoriesFromInput->begin(),
+					categoriesFromInput->end(),
+					[&token](const std::string *p) //lambda expression
+				{
+					return *token == *p;
+				});
+				// if not in categoriesfrominput (not repetitive)
+				if (cfiit == categoriesFromInput->end())
+				{
+					categoriesFromInput->push_back(globalInventory->decideWithAllCategories(token));
+				}
+				cfiit = categoriesFromInput->begin();
+				//as each category is added, it is erased from the input string
+				categoryInput.erase(0, pos + 1);
 			}
-			else //if found in global categories
-			{
-				categoriesFromInput->push_back(*gcit);
-				std::cout << "added " << *gcit << " to categoriesfrominput" << std::endl;
-			}
+			globalInventory->add(*(new Item(nameInput, *categoriesFromInput)));
+			std::cout << "Item " << nameInput << " is added" << std::endl;
 		}
-		gcit = globalCategories->getCategoryVector()->begin();
-		cfiit = categoriesFromInput->begin();
-		//as each category is added, it is erased from the input string
-		categoryInput.erase(0, pos + 1);
-	}
-
-	globalInventory->add(*(new Item(nameInput, *categoriesFromInput)));
+		else if (confirm == 'n')
+			std::cout << "You canceled adding " << nameInput << std::endl;
+		else
+			std::cout << "Invalid char" << std::endl;
+		repeatConfirmation:
+		std::cout << "Add another item again? y/n" << std::endl;
+		std::cin >> repeat;
+		repeat = tolower(repeat);
+	} while (repeat == 'y');
 }
 int main()
 {
 	globalInventory = new Inventory();
-	globalCategories = new Category();
-	char choice = '0';
-	while (choice != '5')
+	char choice = NULL;
+	std::cout << "Welcome to EquipmentLoanSystem v1.0 by David Choo :)" << std::endl;
+	do
 	{
-		cout << "Welcome to EquipmentLoanSystem v1.0 by David Choo :)" << endl;
-		cout << "What would you like to do?" << std::endl;
-		cout << "1. Search for a new equipment" << std::endl;
-		cout << "2. Add a new equipment" << std::endl;
-		cout << "3. Edit an existing equipment" << std::endl;
-		cout << "4. Delete an existing equipment" << std::endl;
-		cout << "5. Exit" << std::endl;
-		cin >> choice;
+		std::cout << "What would you like to do?" << std::endl;
+		std::cout << "1. Search for an existing equipment (working, no error handling)" << std::endl;
+		std::cout << "2. Add a new equipment (working, no error handling)" << std::endl;
+		std::cout << "3. Edit an existing equipment (not yet)" << std::endl;
+		std::cout << "4. Delete an existing equipment (not yet)" << std::endl;
+		std::cout << "5. Loan an existing equipment (not yet)" << std::endl;
+ 		std::cout << "0. Exit (working)" << std::endl;
+		std::cin >> choice;
+		std::cout << "--------------------------------" << std::endl;
 		switch (choice)
 		{
 		case '1':
@@ -110,30 +132,11 @@ int main()
 		case '3':;
 		}
 		std::cout << std::endl;
-		globalInventory->displayAll();
 		
-	}
-	cout << "Bye bye" << endl;
-	cin.ignore();
-	
-	//Category *b;
-	//b = new Category("cat1");
-	//globalCategories->push_back(*b);
-	//Item *a;
-	//a = new Item("item a", "cat1");
-	//std::vector<Category>::iterator it;
-	//it = find(globalCategories->begin(), globalCategories->end(), *(new Category("")));
-	//if (it != globalCategories->end())
-	//	a->setCategory(*it);
-	//else
-	//{
-	//	Category("cat1");
-	//	//a->setCategory(*(Category::globalCategories->end()));
-	//}
-	//std::cout << a->getCategories()[0].getCategory() << std::endl;
-
-
-
-	cin.ignore();
+	} while (choice != '0');
+	//TODO implement Are you sure you want to exit
+	std::cout << "Bye bye (Enter again to exit)" << std::endl;
+	std::cin.ignore(); //for some reason, it needs 2 cin.ignore()
+	std::cin.ignore();
 	return 0;
 }

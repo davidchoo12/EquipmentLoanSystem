@@ -1,11 +1,19 @@
 #include <iostream>
+#include <ctime>
 #include "Item.h"
 
 Item::Item(std::string name, std::vector<std::string*> &category)
 {
 	Item::name = name;
-	Item::onLoan = false;
 	Item::itemCategories = new Category(category);
+	Item::onLoan = false;
+
+	time_t t = time(0);   // get time now
+	struct tm now;
+	localtime_s(&now, &t);
+	Item::timeCreated = "to be fixed, coming soon";/*(now.tm_year + 1900) + '-' +
+						(now.tm_mon + 1) + '-' +
+						now.tm_mday;*/
 	//std::vector<int> myvector(myints, myints + 4);
 	//std::vector<int>::iterator it;
 
@@ -20,20 +28,25 @@ std::string Item::getName() const
 {
 	return Item::name;
 }
+void Item::setName(std::string name)
+{
+	Item::name = name;
+}
 void Item::printItem() const
 {
-	std::cout << Item::name << std::endl;
+	std::cout << "----------" << Item::name << "----------" << std::endl;
 	std::cout << "Categories: ";
 	Item::itemCategories->displayAll();
-}
-//TODO find out the purpose of this method
-bool Item::compareItem(Item &item) const
-{
-	return Item::name == item.name;
+	std::cout << "On Loan: " << Item::onLoan << std::endl;
+	std::cout << "Time Created: " << Item::timeCreated << std::endl;
 }
 void Item::addCategory(std::string *category)
 {
 	itemCategories->add(category);
+}
+void Item::removeCategory(std::string &category)
+{
+	itemCategories->remove(category);
 }
 Category Item::getCategories() const
 {

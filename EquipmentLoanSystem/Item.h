@@ -10,13 +10,16 @@ class Item
 public:
 	Item(std::string name, std::vector<std::string*> &category);
 	std::string getName() const;
+	void setName(std::string name); //to be used
 	void printItem() const;
-	bool compareItem(Item &item) const;
-	void addCategory(std::string *category);
+	void addCategory(std::string *category); //to be used
+	void removeCategory(std::string &category); //to be used
 	Category getCategories() const;
 	//~Item();
 private:
 	std::string name;
 	Category *itemCategories;
-	bool onLoan;
+	bool onLoan; //to be used
+	//TODO fix timeCreated string
+	std::string timeCreated;
 };
