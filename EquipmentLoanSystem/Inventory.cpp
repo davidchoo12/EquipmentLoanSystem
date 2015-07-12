@@ -69,6 +69,47 @@ void Inventory::displaySearchByCategory(std::string &searchKey)
 		}
 	}
 }
+std::vector<Item*> Inventory::displaySearchAndGetItems(std::string &searchKey)
+{
+	std::list<Item>::iterator it;
+	std::vector<Item*> *resultItemVector;
+	resultItemVector = new std::vector<Item*>();
+	int counter = 0;
+	for (it = itemCollection->begin(); it != itemCollection->end(); ++it)
+	{
+		//if searchKey is a substring of the item's name
+		if (it->getName().find(searchKey) != std::string::npos)
+		{
+			counter++;
+			std::cout << counter;
+			it->printItem();
+			resultItemVector->push_back(&*it);
+		}
+	}
+	return *resultItemVector;
+}
+std::vector<Item*> Inventory::displaySearchByCategoryAndGetItems(std::string &searchKey)
+{
+	std::vector<CategoryItems>::iterator it;
+	std::vector<Item*>::iterator it2;
+	std::vector<Item*> *resultItemVector;
+	resultItemVector = new std::vector<Item*>();
+	int counter = 0;
+	for (it = categoryItemsVector->begin(); it != categoryItemsVector->end(); ++it)
+	{
+		if (it->category->find(searchKey) != std::string::npos)
+		{
+			for (it2 = it->items->begin(); it2 != it->items->end(); ++it2)
+			{
+				counter++;
+				std::cout << counter;
+				(*it2)->printItem();
+				resultItemVector->push_back(&**it2);
+			}
+		}
+	}
+	return *resultItemVector;
+}
 Category* Inventory::getAllCategories() const
 {
 	return globalCategories;

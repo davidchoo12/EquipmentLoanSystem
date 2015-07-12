@@ -19,11 +19,13 @@ public:
 	else add the category string pointer to the global category and return the original category string pointer
 	*/
 	std::string* decideWithAllCategories(std::string* category);
+	std::vector<Item*> Inventory::displaySearchAndGetItems(std::string &searchKey);
+	std::vector<Item*> Inventory::displaySearchByCategoryAndGetItems(std::string &searchKey);
 private:
 	std::list<Item> *itemCollection;
 	Category *globalCategories;
 	//class to store each category string and its matching items
-	class CategoryItems
+	struct CategoryItems
 	{
 	public:
 		CategoryItems(std::string *category);

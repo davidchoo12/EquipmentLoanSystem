@@ -11,6 +11,7 @@ public:
 	Item(std::string name, std::vector<std::string*> &category);
 	std::string getName() const;
 	void setName(std::string name); //to be used
+	void setCategories(std::vector<std::string*> &categories);
 	void printItem() const;
 	void addCategory(std::string *category); //to be used
 	void removeCategory(std::string &category); //to be used

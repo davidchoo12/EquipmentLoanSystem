@@ -32,6 +32,11 @@ void Item::setName(std::string name)
 {
 	Item::name = name;
 }
+void Item::setCategories(std::vector<std::string*> &categories)
+{
+	delete Item::itemCategories;
+	Item::itemCategories = new Category(categories);
+}
 void Item::printItem() const
 {
 	std::cout << "----------" << Item::name << "----------" << std::endl;
