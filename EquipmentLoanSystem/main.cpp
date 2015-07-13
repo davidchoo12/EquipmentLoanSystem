@@ -21,29 +21,42 @@ void searchItem()
 		std::cout << "2. Category" << std::endl;
 		std::cout << "3. Display all Items" << std::endl;
 		std::cin >> choice;
-		if (choice == '0')
-			goto repeatConfirmation;
-		else if (choice == '1')
+		std::vector<Item*> resultItemVector;
+		std::string searchKey;
+		switch (choice)
 		{
-			std::string searchKey;
+		case '0': goto repeatConfirmation;
+			break;
+		case '1':
 			std::cout << "Enter the Item name: ";
 			std::cin >> searchKey;
-			globalInventory->displaySearch(searchKey);
-		}
-		else if (choice == '2')
-		{
-			std::string searchKey;
+			resultItemVector = globalInventory->getItemsByName(searchKey);
+			break;
+		case '2':
 			std::cout << "Enter the Category: ";
 			std::cin >> searchKey;
-			globalInventory->displaySearchByCategory(searchKey);
-		}
-		else if (choice == '3')
-		{
-			globalInventory->displayAll();
-		}
-		else
+			resultItemVector = globalInventory->getItemsByCategory(searchKey);
+			break;
+		case '3': resultItemVector = globalInventory->getAllItems();
+			break;
+		default:
 			std::cout << "Invalid Char" << std::endl;
-
+			goto repeatConfirmation;
+		}
+		// to print out resultItemVector items
+		if (resultItemVector.size() == 0)
+			std::cout << "No item found." << std::endl;
+		else
+		{
+			std::cout << "Total Items: " << resultItemVector.size() << std::endl;
+			std::vector<Item*>::iterator rivit;
+			for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
+			{
+				(*rivit)->printItem();
+				std::cout << std::endl;
+			}
+		}
+		
 		repeatConfirmation:
 		std::cout << "Search another item again? y/n" << std::endl;
 		std::cin >> repeat;
@@ -133,44 +146,40 @@ void editItem()
 		std::cout << "3. Display all Items" << std::endl;
 		std::cin >> choice;
 		std::vector<Item*> resultItemVector;
-		if (choice == '0')
-			goto repeatConfirmation;
-		else if (choice == '1')
+		std::string searchKey;
+		std::vector<Item*>::iterator rivit;
+		switch (choice)
 		{
-			std::string searchKey;
+		case '0': goto repeatConfirmation;
+			break;
+		case '1':
 			std::cout << "Enter the Item name: ";
 			std::cin >> searchKey;
-			resultItemVector = globalInventory->displaySearchAndGetItems(searchKey);
-			std::cout << "Enter the number of the item you want to change or enter 0 to search again" << std::endl;
-			std::cin >> choice;
-			if (choice == '0') goto repeatConfirmation;
-			else //unnecessary since if choice is 0, the following code wont run
-			{
-				int choiceInt = choice - '1';
-				resultItemVector.at(choiceInt)->printItem();
-				std::cout << "New name (enter 0 if you dont want to change) : ";
-				std::string input;
-				std::cin >> input;
-				if (input != "0")
-					resultItemVector.at(choiceInt)->setName(input);
-				std::cout << "New categories (comma delimited, no spaces) (enter 0 if you dont want to change): " << std::endl;
-				std::cin >> input;
-				if (input != "0")
-				{
-					std::vector<std::string*> *categories = categoriesStringToVector(input);
-					std::vector<std::string*>::iterator cit;
-					for (cit = categories->begin(); cit != categories->end(); ++cit) { *cit = globalInventory->decideWithAllCategories(*cit); }
-					resultItemVector.at(choiceInt)->setCategories(*categories);
-				}
-				resultItemVector.at(choiceInt)->printItem();
-			}
-		}
-		else if (choice == '2')
-		{
-			std::string searchKey;
+			resultItemVector = globalInventory->getItemsByName(searchKey);
+			break;
+		case '2':
 			std::cout << "Enter the Category: ";
 			std::cin >> searchKey;
-			resultItemVector = globalInventory->displaySearchByCategoryAndGetItems(searchKey);
+			resultItemVector = globalInventory->getItemsByCategory(searchKey);
+			break;
+		case '3':
+			resultItemVector = globalInventory->getAllItems();
+			break;
+		default:
+			std::cout << "Invalid Character" << std::endl;
+			goto repeatConfirmation;
+		}
+		if (resultItemVector.size() == 0)
+			std::cout << "No items found" << std::endl;
+		else
+		{
+			int counter = 0;
+			for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
+			{
+				std::cout << "Item " << counter << std::endl;
+				(*rivit)->printItem();
+				counter++;
+			}
 			std::cout << "Enter the number of the item you want to change or enter 0 to search again" << std::endl;
 			std::cin >> choice;
 			if (choice == '0') goto repeatConfirmation;
@@ -194,14 +203,8 @@ void editItem()
 				}
 				resultItemVector.at(choiceInt)->printItem();
 			}
+			resultItemVector.clear();
 		}
-		else if (choice == '3')
-		{
-			globalInventory->displayAll();
-		}
-		else
-			std::cout << "Invalid Char" << std::endl;
-		resultItemVector.clear();
 
 	repeatConfirmation:
 		std::cout << "Edit another item again? y/n" << std::endl;

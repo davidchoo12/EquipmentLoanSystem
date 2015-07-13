@@ -15,7 +15,7 @@ int Inventory::size() const
 void Inventory::displayAll() const
 {
 	if (categoryItemsVector->size() == 0)
-		std::cout << "No items found. You can add an item by entering 2." << std::endl;
+		std::cout << "No item found. You can add an item by entering 2." << std::endl;
 	else
 	{
 		std::cout << "Total Items: " << itemCollection->size() << std::endl;
@@ -69,46 +69,66 @@ void Inventory::displaySearchByCategory(std::string &searchKey)
 		}
 	}
 }
-std::vector<Item*> Inventory::displaySearchAndGetItems(std::string &searchKey)
+std::vector<Item*> Inventory::getItemsByName(std::string &searchKey)
 {
 	std::list<Item>::iterator it;
 	std::vector<Item*> *resultItemVector;
 	resultItemVector = new std::vector<Item*>();
-	int counter = 0;
+	//int counter = 0;
 	for (it = itemCollection->begin(); it != itemCollection->end(); ++it)
 	{
 		//if searchKey is a substring of the item's name
 		if (it->getName().find(searchKey) != std::string::npos)
 		{
-			counter++;
+			/*counter++;
 			std::cout << counter;
-			it->printItem();
+			it->printItem();*/
 			resultItemVector->push_back(&*it);
 		}
 	}
 	return *resultItemVector;
 }
-std::vector<Item*> Inventory::displaySearchByCategoryAndGetItems(std::string &searchKey)
+std::vector<Item*> Inventory::getItemsByCategory(std::string &searchKey)
 {
 	std::vector<CategoryItems>::iterator it;
 	std::vector<Item*>::iterator it2;
-	std::vector<Item*> *resultItemVector;
-	resultItemVector = new std::vector<Item*>();
-	int counter = 0;
+	std::vector<Item*> resultItemVector;
+	resultItemVector = *(new std::vector<Item*>());
+	//int counter = 0;
 	for (it = categoryItemsVector->begin(); it != categoryItemsVector->end(); ++it)
 	{
 		if (it->category->find(searchKey) != std::string::npos)
 		{
-			for (it2 = it->items->begin(); it2 != it->items->end(); ++it2)
+			for (it2 = it->items->begin(); it2 != it->items->end(); it2++)
 			{
-				counter++;
-				std::cout << counter;
-				(*it2)->printItem();
-				resultItemVector->push_back(&**it2);
+				//counter++;
+				//std::cout << counter;
+				//(*it2)->printItem();
+				// if not in resultItemVector then add in
+				Item* currItem = *it2;
+				std::vector<Item*>::iterator rivit = std::find_if(
+					resultItemVector.begin(),
+					resultItemVector.end(),
+					[&currItem](const Item *p)
+				{
+					return currItem->getName() == p->getName();
+				});
+				if (rivit == resultItemVector.end())
+					resultItemVector.push_back(currItem);
 			}
 		}
 	}
-	return *resultItemVector;
+	return resultItemVector;
+}
+std::vector<Item*> Inventory::getAllItems()
+{
+	std::vector<Item*> allItems = *(new std::vector<Item*>());
+	std::list<Item>::iterator icit;
+	for (icit = Inventory::itemCollection->begin(); icit != Inventory::itemCollection->end(); icit++)
+	{
+		allItems.push_back(&*icit);
+	}
+	return allItems;
 }
 Category* Inventory::getAllCategories() const
 {
