@@ -61,3 +61,7 @@ Category Item::getCategories() const
 //{
 //	delete this;
 //}
+bool Item::isA(std::string* category)
+{
+	return Item::itemCategories->has(category);
+}

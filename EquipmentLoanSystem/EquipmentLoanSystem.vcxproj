@@ -47,6 +47,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <StackReserveSize>2000000</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -66,14 +67,15 @@
   <ItemGroup>
     <ClInclude Include="Category.h" />
     <ClInclude Include="Inventory.h" />
+    <ClInclude Include="InventoryManager.h" />
     <ClInclude Include="Item.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Category.cpp" />
     <ClCompile Include="Inventory.cpp" />
+    <ClCompile Include="InventoryManager.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Screen.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

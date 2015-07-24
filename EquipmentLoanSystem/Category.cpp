@@ -83,3 +83,8 @@ std::vector<std::string*>* Category::getCategoryVector() { return categoryVector
 //	return lhs.categoryVector == rhs.categoryVector;
 //}
 //const std::vector<Category> Category::categoryVector = new std::vector<Category>();
+bool Category::has(std::string* category)
+{
+	std::vector<std::string*>::iterator it = find(Category::categoryVector->begin(), Category::categoryVector->end(), category);
+	return it != Category::categoryVector->end(); //if found category within categoryVector
+}

@@ -24,6 +24,9 @@
     <ClInclude Include="Category.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="InventoryManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Item.cpp">
@@ -38,7 +41,7 @@
     <ClCompile Include="Inventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Screen.cpp">
+    <ClCompile Include="InventoryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

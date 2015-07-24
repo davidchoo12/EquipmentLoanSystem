@@ -15,6 +15,7 @@ public:
 	void printItem() const;
 	void addCategory(std::string *category); //to be used
 	void removeCategory(std::string &category); //to be used
+	bool isA(std::string* category);
 	Category getCategories() const;
 	//~Item();
 private:

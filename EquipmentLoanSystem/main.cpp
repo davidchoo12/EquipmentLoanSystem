@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include "InventoryManager.h"
 #include "Inventory.h"
 #include "Category.h"
 #include "Item.h"
@@ -9,6 +10,7 @@
 //#include <conio.h>
 
 Inventory *globalInventory;
+InventoryManager *globalInventoryManager;
 
 void searchItem()
 {
@@ -30,14 +32,14 @@ void searchItem()
 		case '1':
 			std::cout << "Enter the Item name: ";
 			std::cin >> searchKey;
-			resultItemVector = globalInventory->getItemsByName(searchKey);
+			resultItemVector = globalInventoryManager->getItemsByName(searchKey);
 			break;
 		case '2':
 			std::cout << "Enter the Category: ";
 			std::cin >> searchKey;
-			resultItemVector = globalInventory->getItemsByCategory(searchKey);
+			resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
 			break;
-		case '3': resultItemVector = globalInventory->getAllItems();
+		case '3': resultItemVector = globalInventoryManager->getAllItems();
 			break;
 		default:
 			std::cout << "Invalid Char" << std::endl;
@@ -112,9 +114,7 @@ void addItem()
 		if (confirm == 'y')
 		{
 			std::vector<std::string*> *categoriesFromInput = categoriesStringToVector(categoryInput);
-			std::vector<std::string*>::iterator cfiit;
-			for (cfiit = categoriesFromInput->begin(); cfiit != categoriesFromInput->end(); ++cfiit) { *cfiit = globalInventory->decideWithAllCategories(*cfiit); }
-			globalInventory->add(*(new Item(nameInput, *categoriesFromInput)));
+			globalInventoryManager->addItem(nameInput, *categoriesFromInput);
 			std::cout << "Item " << nameInput << " is added" << std::endl;
 		}
 		else if (confirm == 'n')
@@ -130,9 +130,7 @@ void addItem()
 void addItem(std::string itemName, std::string categories)
 {
 	std::vector<std::string*> *categoriesFromInput = categoriesStringToVector(categories);
-	std::vector<std::string*>::iterator cfiit;
-	for (cfiit = categoriesFromInput->begin(); cfiit != categoriesFromInput->end(); ++cfiit) { *cfiit = globalInventory->decideWithAllCategories(*cfiit); }
-	globalInventory->add(*(new Item(itemName, *categoriesFromInput)));
+	globalInventoryManager->addItem(itemName, *categoriesFromInput);
 }
 void editItem()
 {/*
@@ -155,15 +153,15 @@ void editItem()
 		case '1':
 			std::cout << "Enter the Item name: ";
 			std::cin >> searchKey;
-			resultItemVector = globalInventory->getItemsByName(searchKey);
+			resultItemVector = globalInventoryManager->getItemsByName(searchKey);
 			break;
 		case '2':
 			std::cout << "Enter the Category: ";
 			std::cin >> searchKey;
-			resultItemVector = globalInventory->getItemsByCategory(searchKey);
+			resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
 			break;
 		case '3':
-			resultItemVector = globalInventory->getAllItems();
+			resultItemVector = globalInventoryManager->getAllItems();
 			break;
 		default:
 			std::cout << "Invalid Character" << std::endl;
@@ -192,14 +190,15 @@ void editItem()
 				std::cin >> input;
 				if (input != "0")
 					resultItemVector.at(choiceInt)->setName(input);
+					//globalInventoryManager->editItemName(resultItemVector.at(choiceInt), input);
 				std::cout << "New categories (comma delimited, no spaces) (enter 0 if you dont want to change): " << std::endl;
 				std::cin >> input;
 				if (input != "0")
 				{
 					std::vector<std::string*> *categories = categoriesStringToVector(input);
-					setItemCategory(resultItemVector.at(choiceInt), categories);
+					globalInventoryManager->editItemCategory(resultItemVector.at(choiceInt), *categories);
 					/*std::vector<std::string*>::iterator cit;
-					for (cit = categories->begin(); cit != categories->end(); ++cit) { *cit = globalInventory->decideWithAllCategories(*cit); }
+					for (cit = categories->begin(); cit != categories->end(); ++cit) { *cit = globalInventoryManager->decideWithAllCategories(*cit); }
 					resultItemVector.at(choiceInt)->setCategories(*categories);*/
 				}
 				resultItemVector.at(choiceInt)->printItem();
@@ -212,19 +211,6 @@ void editItem()
 		std::cin >> repeat;
 		repeat = tolower(repeat);
 	} while (repeat == 'y');*/
-}
-void setItemCategory(Item *item, std::vector<std::string*> *category)
-{
-	std::vector<std::string*>::iterator cit;
-	for (cit = category->begin(); cit != category->end(); ++cit) 
-	{
-		*cit = globalInventory->decideWithAllCategories(*cit);
-		Inventory::CategoryItems* a = globalInventory->searchCategory(*cit);
-		a->items->push_back(item);
-	}
-	item->setCategories(*category);
-	std::vector<Inventory::CategoryItems*> categoryItemsHavingItem = globalInventory->searchItemFromCategoryItems(item);
-	//TODO: find out what can be done with "decideCategories" method to select which CategoryItems to delete
 }
 void repeatConfirmation(void (*func)(), std::string promptMessage)
 {
@@ -244,6 +230,7 @@ int main()
 	if (!testing)
 	{
 		globalInventory = new Inventory();
+		globalInventoryManager = new InventoryManager(*globalInventory);
 		addItem("placeholder", "category1,category2");
 		addItem("placeholder2", "category1,category2");
 		char choice = NULL;
