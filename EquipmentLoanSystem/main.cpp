@@ -135,10 +135,10 @@ void addItem(std::string itemName, std::string categories)
 	globalInventory->add(*(new Item(itemName, *categoriesFromInput)));
 }
 void editItem()
-{
+{/*
 	char repeat = 'y';
 	do
-	{
+	{*/
 		char choice;
 		std::cout << "Select the item you would like to edit. Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
 		std::cout << "1. Item name" << std::endl;
@@ -150,7 +150,7 @@ void editItem()
 		std::vector<Item*>::iterator rivit;
 		switch (choice)
 		{
-		case '0': goto repeatConfirmation;
+		case '0': return;
 			break;
 		case '1':
 			std::cout << "Enter the Item name: ";
@@ -167,7 +167,7 @@ void editItem()
 			break;
 		default:
 			std::cout << "Invalid Character" << std::endl;
-			goto repeatConfirmation;
+			return;
 		}
 		if (resultItemVector.size() == 0)
 			std::cout << "No items found" << std::endl;
@@ -176,13 +176,13 @@ void editItem()
 			int counter = 0;
 			for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
 			{
-				std::cout << "Item " << counter << std::endl;
+				std::cout << "Item " << ++counter << std::endl;
 				(*rivit)->printItem();
-				counter++;
+				std::cout << std::endl;
 			}
 			std::cout << "Enter the number of the item you want to change or enter 0 to search again" << std::endl;
 			std::cin >> choice;
-			if (choice == '0') goto repeatConfirmation;
+			if (choice == '0') return;
 			else //unnecessary since if choice is 0, the following code wont run
 			{
 				int choiceInt = choice - '1';
@@ -197,22 +197,47 @@ void editItem()
 				if (input != "0")
 				{
 					std::vector<std::string*> *categories = categoriesStringToVector(input);
-					std::vector<std::string*>::iterator cit;
+					setItemCategory(resultItemVector.at(choiceInt), categories);
+					/*std::vector<std::string*>::iterator cit;
 					for (cit = categories->begin(); cit != categories->end(); ++cit) { *cit = globalInventory->decideWithAllCategories(*cit); }
-					resultItemVector.at(choiceInt)->setCategories(*categories);
+					resultItemVector.at(choiceInt)->setCategories(*categories);*/
 				}
 				resultItemVector.at(choiceInt)->printItem();
 			}
 			resultItemVector.clear();
-		}
+		}/*
 
 	repeatConfirmation:
 		std::cout << "Edit another item again? y/n" << std::endl;
 		std::cin >> repeat;
 		repeat = tolower(repeat);
+	} while (repeat == 'y');*/
+}
+void setItemCategory(Item *item, std::vector<std::string*> *category)
+{
+	std::vector<std::string*>::iterator cit;
+	for (cit = category->begin(); cit != category->end(); ++cit) 
+	{
+		*cit = globalInventory->decideWithAllCategories(*cit);
+		Inventory::CategoryItems* a = globalInventory->searchCategory(*cit);
+		a->items->push_back(item);
+	}
+	item->setCategories(*category);
+	std::vector<Inventory::CategoryItems*> categoryItemsHavingItem = globalInventory->searchItemFromCategoryItems(item);
+	//TODO: find out what can be done with "decideCategories" method to select which CategoryItems to delete
+}
+void repeatConfirmation(void (*func)(), std::string promptMessage)
+{
+
+	char repeat = 'y';
+	do
+	{
+		func();
+		std::cout << promptMessage << std::endl;
+		std::cin >> repeat;
+		repeat = tolower(repeat);
 	} while (repeat == 'y');
 }
-
 int main()
 {
 	bool testing = false;
@@ -243,7 +268,7 @@ int main()
 				addItem();
 				break;
 			case '3':
-				editItem();
+				repeatConfirmation(editItem, "Edit another item? y/n");
 				break;
 			}
 			system("cls");

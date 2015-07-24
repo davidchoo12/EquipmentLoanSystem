@@ -13,7 +13,7 @@ public:
 	void edit(std::string oldCategoryItem, std::string newCategoryItem); //to be used
 	void remove(std::string &categoryItem);
 	std::vector<std::string*>* getCategoryVector();
-	//~Category() { std::cout << "category deleted"; }
+	//~Category() { delete categoryVector; std::cout << "category deleted"; }
 private:
 	std::vector<std::string*> *categoryVector;
 };

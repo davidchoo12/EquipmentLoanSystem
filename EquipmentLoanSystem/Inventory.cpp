@@ -14,7 +14,7 @@ int Inventory::size() const
 }
 void Inventory::displayAll() const
 {
-	if (categoryItemsVector->size() == 0)
+	if (itemCollection->size() == 0)
 		std::cout << "No item found. You can add an item by entering 2." << std::endl;
 	else
 	{

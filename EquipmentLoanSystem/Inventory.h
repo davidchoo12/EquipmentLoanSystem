@@ -22,6 +22,7 @@ public:
 	std::vector<Item*> Inventory::getItemsByName(std::string &searchKey);
 	std::vector<Item*> Inventory::getItemsByCategory(std::string &searchKey);
 	std::vector<Item*> Inventory::getAllItems();
+	friend void setItemCategory(Item *item, std::vector<std::string*> *category);
 private:
 	std::list<Item> *itemCollection;
 	Category *globalCategories;
@@ -35,4 +36,29 @@ private:
 	};
 	//categoryItemsVector will be a helping object for recording the items with the same categories
 	std::vector<CategoryItems> *categoryItemsVector;
+	CategoryItems* searchCategory(std::string *category)
+	{
+		std::vector<CategoryItems>::iterator ciit;
+		for (ciit = categoryItemsVector->begin(); ciit != categoryItemsVector->end(); ciit++)
+		{
+			if (ciit->category == category) return &*ciit;
+		}
+	}
+	std::vector<CategoryItems*> searchItemFromCategoryItems(Item *item)
+	{
+		std::vector<CategoryItems*> *result = new std::vector<CategoryItems*>();
+		std::vector<CategoryItems>::iterator ciit;
+		std::vector<Item*>::iterator iit;
+		for (ciit = categoryItemsVector->begin(); ciit != categoryItemsVector->end(); ciit++)
+		{
+			for (iit = ciit->items->begin(); iit != ciit->items->end(); iit++)
+			{
+				if (*iit == item)
+				{
+					result->push_back(&*ciit);
+				}
+			}
+		}
+		return *result;
+	}
 };
