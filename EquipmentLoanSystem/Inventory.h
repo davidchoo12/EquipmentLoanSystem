@@ -19,9 +19,10 @@ public:
 	else add the category string pointer to the global category and return the original category string pointer
 	*/
 	std::string* decideWithAllCategories(std::string* category);
-	std::vector<Item*> Inventory::getItemsByName(std::string &searchKey);
+	std::vector<Item*> getItemsByName(std::string &searchKey);
 	//std::vector<Item*> Inventory::getItemsByCategory(std::string &searchKey);
-	std::vector<Item*> Inventory::getAllItems();
+	std::vector<Item*> getAllItems();
+	void deleteItem(Item *item);
 	//friend void setItemCategory(Item *item, std::vector<std::string*> *category);
 private:
 	std::list<Item*> *itemCollection;

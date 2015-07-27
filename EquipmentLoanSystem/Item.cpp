@@ -8,12 +8,15 @@ Item::Item(std::string name, std::vector<std::string*> &category)
 	Item::itemCategories = new Category(category);
 	Item::onLoan = false;
 
-	time_t t = time(0);   // get time now
-	struct tm now;
-	localtime_s(&now, &t);
-	Item::timeCreated = "to be fixed, coming soon";/*(now.tm_year + 1900) + '-' +
-						(now.tm_mon + 1) + '-' +
-						now.tm_mday;*/
+	time_t now = time(0);   // get time now
+	/*struct tm now;
+	localtime_s(&now, &t);*/
+	//std::string	dt = ctime(&now); (apparently ctime is "unsafe")
+	tm ltm;
+	localtime_s(&ltm, &now);
+	Item::timeCreated = std::to_string(ltm.tm_year + 1900) + "-" +
+						std::to_string(ltm.tm_mon + 1) + "-" +
+						std::to_string(ltm.tm_mday);
 	//std::vector<int> myvector(myints, myints + 4);
 	//std::vector<int>::iterator it;
 

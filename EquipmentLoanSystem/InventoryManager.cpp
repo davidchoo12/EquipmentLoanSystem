@@ -144,8 +144,36 @@ void InventoryManager::editItemCategory(Item *item, std::vector<std::string*> &c
 		}
 	}
 }
-void InventoryManager::deleteItem(std::string name) {}
-void InventoryManager::deleteItemsOfCategory(std::string category) {}
+void InventoryManager::deleteItem(Item *item)
+{
+	std::vector<std::string*>::iterator spit; // String Pointer ITerator = SPIT lol
+	for (spit = item->getCategories().getCategoryVector()->begin(); spit != item->getCategories().getCategoryVector()->end();)
+	{
+		//remove the item from the CategoryItems of the current itemCategory
+		CategoryItems *categoryItemsOfCurrentCategory = getCategoryItemsByCategory(*spit);
+		categoryItemsOfCurrentCategory->removeItem(item);
+		//if the CategoryItems of the current itemCategory is empty, remove the category from the globalCategories, remove the CategoryItems from the categoryItemsVector and delete the CategoryItems
+		if (categoryItemsOfCurrentCategory->items->size() == 0)
+		{
+			inventory->getAllCategories()->remove(**spit);
+			removeCategoryItems(categoryItemsOfCurrentCategory);
+		}
+		//remove the current itemCategory
+		spit = item->getCategories().getCategoryVector()->erase(spit); //returns iterator pointing to the place where the erased object was (basically where the next object is currently at), so no need spit++
+	}
+	inventory->deleteItem(item);
+	delete item;
+}
+//void InventoryManager::deleteItemsOfCategory(std::string *category)
+//{
+//	CategoryItems *ci = getCategoryItemsByCategory(category);
+//	std::vector<Item*>::iterator iit;
+//	for (iit = ci->items->begin(); iit != ci->items->end(); iit++)
+//	{
+//		deleteItem(*iit);
+//	}
+//	delete ci;
+//}
 std::string* InventoryManager::decideWithAllCategories(std::string* category)
 {
 	Category *globalCategories = InventoryManager::inventory->getAllCategories();

@@ -13,8 +13,8 @@ public:
 	void addItem(std::string &name, std::vector<std::string*> &category);
 	void editItemName(Item *item, std::string name);
 	void editItemCategory(Item *item, std::vector<std::string*> &name);
-	void deleteItem(std::string name);
-	void deleteItemsOfCategory(std::string category);
+	void deleteItem(Item *item);
+	void deleteItemsOfCategory(std::string *category);
 	std::string* decideWithAllCategories(std::string* category);
 private:
 	Inventory *inventory;

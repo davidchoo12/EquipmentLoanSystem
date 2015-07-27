@@ -1,3 +1,6 @@
+//There was some issue with the stack size limit that the app throws an exception whenever the app is closed
+//I configured the stack size to be 10MB instead of the default 1MB and it resolves the issue
+
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -13,10 +16,10 @@ Inventory *globalInventory;
 InventoryManager *globalInventoryManager;
 
 void searchItem()
-{
+{/*
 	char repeat = 'y';
 	do
-	{
+	{*/
 		char choice;
 		std::cout << "Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
 		std::cout << "1. Item name" << std::endl;
@@ -27,7 +30,7 @@ void searchItem()
 		std::string searchKey;
 		switch (choice)
 		{
-		case '0': goto repeatConfirmation;
+		case '0': return;
 			break;
 		case '1':
 			std::cout << "Enter the Item name: ";
@@ -43,7 +46,7 @@ void searchItem()
 			break;
 		default:
 			std::cout << "Invalid Char" << std::endl;
-			goto repeatConfirmation;
+			return;
 		}
 		// to print out resultItemVector items
 		if (resultItemVector.size() == 0)
@@ -57,13 +60,13 @@ void searchItem()
 				(*rivit)->printItem();
 				std::cout << std::endl;
 			}
-		}
+		}/*
 		
 		repeatConfirmation:
 		std::cout << "Search another item again? y/n" << std::endl;
 		std::cin >> repeat;
 		repeat = tolower(repeat);
-	} while (repeat == 'y');
+	} while (repeat == 'y');*/
 }
 std::vector<std::string*>* categoriesStringToVector(std::string commaDelimitedCategories)
 {
@@ -95,16 +98,16 @@ std::vector<std::string*>* categoriesStringToVector(std::string commaDelimitedCa
 }
 
 void addItem()
-{
+{/*
 	char repeat = 'y';
 	do
-	{
+	{*/
 		std::string nameInput;
 		std::string categoryInput;
 		std::cout << "Please enter item details" << std::endl;
 		std::cout << "Name (without spaces, not working with spaces yet) (enter 0 to go back): ";
 		std::cin >> nameInput;
-		if (nameInput == "0") goto repeatConfirmation;
+		if (nameInput == "0") return;
 		std::cout << "Category: (use commas to delimit multiple values, no spaces in after commas)" << std::endl;
 		std::cin >> categoryInput;
 		char confirm;
@@ -120,12 +123,12 @@ void addItem()
 		else if (confirm == 'n')
 			std::cout << "You canceled adding " << nameInput << std::endl;
 		else
-			std::cout << "Invalid char" << std::endl;
+			std::cout << "Invalid char" << std::endl;/*
 		repeatConfirmation:
 		std::cout << "Add another item again? y/n" << std::endl;
 		std::cin >> repeat;
 		repeat = tolower(repeat);
-	} while (repeat == 'y');
+	} while (repeat == 'y');*/
 }
 void addItem(std::string itemName, std::string categories)
 {
@@ -212,6 +215,129 @@ void editItem()
 		repeat = tolower(repeat);
 	} while (repeat == 'y');*/
 }
+void deleteOneItem()
+{
+	char choice;
+	std::cout << "Select the item you would like to delete. Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
+	std::cout << "1. Item name" << std::endl;
+	std::cout << "2. Category" << std::endl;
+	std::cout << "3. Display all Items" << std::endl;
+	std::cin >> choice;
+	std::vector<Item*> resultItemVector;
+	std::string searchKey;
+	std::vector<Item*>::iterator rivit;
+	switch (choice)
+	{
+	case '0': return;
+		break;
+	case '1':
+		std::cout << "Enter the Item name: ";
+		std::cin >> searchKey;
+		resultItemVector = globalInventoryManager->getItemsByName(searchKey);
+		break;
+	case '2':
+		std::cout << "Enter the Category: ";
+		std::cin >> searchKey;
+		resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
+		break;
+	case '3':
+		resultItemVector = globalInventoryManager->getAllItems();
+		break;
+	default:
+		std::cout << "Invalid Character" << std::endl;
+		return;
+	}
+	if (resultItemVector.size() == 0)
+		std::cout << "No items found" << std::endl;
+	else
+	{
+		int counter = 0;
+		for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
+		{
+			std::cout << "Item " << ++counter << std::endl;
+			(*rivit)->printItem();
+			std::cout << std::endl;
+		}
+		std::cout << "Enter the number of the item you want to delete or enter 0 to search again" << std::endl;
+		std::cin >> choice;
+		if (choice == '0') return;
+		else //unnecessary since if choice is 0, the following code wont run
+		{
+			int choiceInt = choice - '1';
+			resultItemVector.at(choiceInt)->printItem();
+			std::cout << "Are you sure you want to delete the item above? y/n" << std::endl;
+			std::string input;
+			std::cin >> input;
+			if (input == "y")
+				globalInventoryManager->deleteItem(resultItemVector.at(choiceInt));
+		}
+	}
+}
+void deleteItemsByCategory()
+{
+	std::string searchKey;
+	std::vector<Item*> resultItemVector;
+	std::cout << "Enter the Category: ";
+	std::cin >> searchKey;
+	resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
+	if (resultItemVector.size() == 0)
+		std::cout << "No items found" << std::endl;
+	else
+	{
+		std::vector<Item*>::iterator rivit;
+		for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
+		{
+			(*rivit)->printItem();
+			std::cout << std::endl;
+		}
+		std::cout << "Are you sure you want to delete all the items of " << searchKey << "? y/n" << std::endl;
+		std::string input;
+		std::cin >> input;
+		if (input == "y")
+		{
+			std::vector<Item*>::iterator iit;
+			for (iit = resultItemVector.begin(); iit != resultItemVector.end(); iit++)
+				globalInventoryManager->deleteItem(*iit);
+		}
+	}
+}
+void deleteAllItems()
+{
+	std::string input;
+	std::vector<Item*> resultItemVector;
+	std::cout << "Are you sure you want to delete all the items in the inventory? y/n";
+	std::cin >> input;
+	if (input == "y")
+	{
+		resultItemVector = globalInventoryManager->getAllItems();
+		std::vector<Item*>::iterator iit;
+		for (iit = resultItemVector.begin(); iit != resultItemVector.end(); iit++)
+			globalInventoryManager->deleteItem(*iit);
+	}
+}
+void deleteItem()
+{
+	char choice;
+	std::cout << "Would you like to delete one item or all items of a category or all items in the inventory? (enter 0 to go back)" << std::endl;
+	std::cout << "1. One Item" << std::endl;
+	std::cout << "2. All Items of a Category" << std::endl;
+	std::cout << "3. All Items in the Inventory" << std::endl;
+	std::cin >> choice;
+	switch (choice)
+	{
+	case '0': return;
+		break;
+	case '1': deleteOneItem();
+		break;
+	case '2': deleteItemsByCategory();
+		break;
+	case '3': deleteAllItems();
+		break;
+	default:
+		std::cout << "Invalid Character" << std::endl;
+		return;
+	}
+}
 void repeatConfirmation(void (*func)(), std::string promptMessage)
 {
 
@@ -248,15 +374,22 @@ int main()
 			std::cout << "--------------------------------" << std::endl;
 			switch (choice)
 			{
+			case '0':
+				break;
 			case '1':
-				searchItem();
+				repeatConfirmation(searchItem, "Search another item? y/n");
 				break;
 			case '2':
-				addItem();
+				repeatConfirmation(addItem, "Add another item? y/n");
 				break;
 			case '3':
 				repeatConfirmation(editItem, "Edit another item? y/n");
 				break;
+			case '4':
+				repeatConfirmation(deleteItem, "Delete another item? y/n");
+				break;
+			default:
+				std::cout << "Invalid character" << std::endl;
 			}
 			system("cls");
 

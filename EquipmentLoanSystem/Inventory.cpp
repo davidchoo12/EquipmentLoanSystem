@@ -134,6 +134,11 @@ Category* Inventory::getAllCategories() const
 {
 	return globalCategories;
 }
+void Inventory::deleteItem(Item *item)
+{
+	std::list<Item*>::iterator icit = std::find(itemCollection->begin(), itemCollection->end(), item);
+	itemCollection->erase(icit);
+}
 //std::string* Inventory::decideWithAllCategories(std::string* category)
 //{
 	//std::vector<std::string*>::iterator gcit =
