@@ -3,14 +3,34 @@
 #include "InventoryManager.h"
 using namespace std;
 
+bool itemTitleAscending(Item *lhs, Item *rhs) { return lhs->getName().compare(rhs->getName()) < 0; }
 InventoryManager::InventoryManager(Inventory &inventory)
 {
 	InventoryManager::inventory = &inventory;
 	InventoryManager::categoryItemsVector = new std::vector<CategoryItems*>();
 }
+void InventoryManager::sort(std::vector<Item*> &itemVector)
+{
+	std::sort(itemVector.begin(), itemVector.end(), itemTitleAscending);
+}
+std::vector<LoanableItem*> InventoryManager::getLoanableItemsFromItems(std::vector<Item*> itemVector)
+{
+	std::vector<LoanableItem*> result;
+	std::vector<Item*>::iterator ivit;
+	for (ivit = itemVector.begin(); ivit != itemVector.end(); ivit++)
+	{
+		LoanableItem *li = dynamic_cast<LoanableItem*>(*ivit);
+		//if (typeid(*ivit).name() == "class LoanableItem")
+		if (li) //if the conversion succeed, li would not be null so add it to the result vector
+			result.push_back(li);
+	}
+	return result;
+}
 std::vector<Item*> InventoryManager::getItemsByName(std::string searchKey)
 {
-	return InventoryManager::inventory->getItemsByName(searchKey);
+	std::vector<Item*> result = InventoryManager::inventory->getItemsByName(searchKey);
+	sort(result);
+	return result;
 }
 std::vector<Item*> InventoryManager::getItemsByCategory(std::string searchKey)
 {
@@ -42,18 +62,42 @@ std::vector<Item*> InventoryManager::getItemsByCategory(std::string searchKey)
 			}
 		}
 	}
+	sort(resultItemVector);
 	return resultItemVector;
+}
+std::vector<LoanableItem*> InventoryManager::getLoanableItemsByName(std::string searchKey)
+{
+	return InventoryManager::getLoanableItemsFromItems(InventoryManager::getItemsByName(searchKey));
+}
+std::vector<LoanableItem*> InventoryManager::getLoanableItemsByCategory(std::string searchKey)
+{
+	return InventoryManager::getLoanableItemsFromItems(InventoryManager::getItemsByCategory(searchKey));
+}
+std::vector<LoanableItem*> InventoryManager::getAllLoanableItems()
+{
+	return InventoryManager::getLoanableItemsFromItems(InventoryManager::getAllItems());
 }
 std::vector<Item*> InventoryManager::getAllItems()
 {
-	return InventoryManager::inventory->getAllItems();
+	std::vector<Item*> result = InventoryManager::inventory->getAllItems();
+	sort(result);
+	return result;
 }
-void InventoryManager::addItem(std::string &name, std::vector<std::string*> &category)
+void InventoryManager::addItem(std::string &name, std::vector<std::string*> &category, bool isLoanable)
 {
 	std::vector<std::string*>::iterator cfiit;
 	for (cfiit = category.begin(); cfiit != category.end(); cfiit++) { *cfiit = InventoryManager::decideWithAllCategories(*cfiit); }
-	Item *toBeAdded = new Item(name, category);
-	InventoryManager::inventory->add(toBeAdded);
+	Item *toBeAdded;
+	if (isLoanable)
+	{
+		toBeAdded = new LoanableItem(name, category);
+		InventoryManager::inventory->add(toBeAdded);
+	}
+	else
+	{
+		toBeAdded = new Item(name, category);
+		InventoryManager::inventory->add(toBeAdded);
+	}
 	//updates the categoryItemsVector
 	std::vector<std::string*>::iterator it;
 	std::vector<CategoryItems*>::iterator it2;

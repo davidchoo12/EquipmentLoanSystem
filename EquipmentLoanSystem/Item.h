@@ -12,16 +12,15 @@ public:
 	std::string getName() const;
 	void setName(std::string name); //to be used
 	void setCategories(std::vector<std::string*> &categories);
-	void printItem() const;
+	virtual void printItem() const;
 	void addCategory(std::string *category); //to be used
 	void removeCategory(std::string &category); //to be used
 	bool isA(std::string* category);
 	Category getCategories() const;
 	//~Item();
-private:
+protected:
 	std::string name;
 	Category *itemCategories;
-	bool onLoan; //to be used
-	//TODO fix timeCreated string
 	std::string timeCreated;
+	void f(const char *s) const;
 };

@@ -117,7 +117,7 @@ void addItem()
 		if (confirm == 'y')
 		{
 			std::vector<std::string*> *categoriesFromInput = categoriesStringToVector(categoryInput);
-			globalInventoryManager->addItem(nameInput, *categoriesFromInput);
+			globalInventoryManager->addItem(nameInput, *categoriesFromInput, false);
 			std::cout << "Item " << nameInput << " is added" << std::endl;
 		}
 		else if (confirm == 'n')
@@ -130,95 +130,27 @@ void addItem()
 		repeat = tolower(repeat);
 	} while (repeat == 'y');*/
 }
-void addItem(std::string itemName, std::string categories)
+void addItem(std::string itemName, std::string categories, bool isLoanable)
 {
 	std::vector<std::string*> *categoriesFromInput = categoriesStringToVector(categories);
-	globalInventoryManager->addItem(itemName, *categoriesFromInput);
+	globalInventoryManager->addItem(itemName, *categoriesFromInput, isLoanable);
 }
-void editItem()
-{/*
-	char repeat = 'y';
-	do
-	{*/
-		char choice;
-		std::cout << "Select the item you would like to edit. Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
-		std::cout << "1. Item name" << std::endl;
-		std::cout << "2. Category" << std::endl;
-		std::cout << "3. Display all Items" << std::endl;
-		std::cin >> choice;
-		std::vector<Item*> resultItemVector;
-		std::string searchKey;
-		std::vector<Item*>::iterator rivit;
-		switch (choice)
-		{
-		case '0': return;
-			break;
-		case '1':
-			std::cout << "Enter the Item name: ";
-			std::cin >> searchKey;
-			resultItemVector = globalInventoryManager->getItemsByName(searchKey);
-			break;
-		case '2':
-			std::cout << "Enter the Category: ";
-			std::cin >> searchKey;
-			resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
-			break;
-		case '3':
-			resultItemVector = globalInventoryManager->getAllItems();
-			break;
-		default:
-			std::cout << "Invalid Character" << std::endl;
-			return;
-		}
-		if (resultItemVector.size() == 0)
-			std::cout << "No items found" << std::endl;
-		else
-		{
-			int counter = 0;
-			for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
-			{
-				std::cout << "Item " << ++counter << std::endl;
-				(*rivit)->printItem();
-				std::cout << std::endl;
-			}
-			std::cout << "Enter the number of the item you want to change or enter 0 to search again" << std::endl;
-			std::cin >> choice;
-			if (choice == '0') return;
-			else //unnecessary since if choice is 0, the following code wont run
-			{
-				int choiceInt = choice - '1';
-				resultItemVector.at(choiceInt)->printItem();
-				std::cout << "New name (enter 0 if you dont want to change) : ";
-				std::string input;
-				std::cin >> input;
-				if (input != "0")
-					resultItemVector.at(choiceInt)->setName(input);
-					//globalInventoryManager->editItemName(resultItemVector.at(choiceInt), input);
-				std::cout << "New categories (comma delimited, no spaces) (enter 0 if you dont want to change): " << std::endl;
-				std::cin >> input;
-				if (input != "0")
-				{
-					std::vector<std::string*> *categories = categoriesStringToVector(input);
-					globalInventoryManager->editItemCategory(resultItemVector.at(choiceInt), *categories);
-					/*std::vector<std::string*>::iterator cit;
-					for (cit = categories->begin(); cit != categories->end(); ++cit) { *cit = globalInventoryManager->decideWithAllCategories(*cit); }
-					resultItemVector.at(choiceInt)->setCategories(*categories);*/
-				}
-				resultItemVector.at(choiceInt)->printItem();
-			}
-			resultItemVector.clear();
-		}/*
-
-	repeatConfirmation:
-		std::cout << "Edit another item again? y/n" << std::endl;
-		std::cin >> repeat;
-		repeat = tolower(repeat);
-	} while (repeat == 'y');*/
-}
-void deleteOneItem()
+//template <class T>
+//struct TypeIsItem
+//{
+//	static const bool value = false;
+//};
+//template <>
+//struct TypeIsItem<Item>
+//{
+//	static const bool value = true;
+//};
+//template<class T>
+//typename std::enable_if < std::is_same<Item, T>::value || std::is_same<LoanableItem, T>::value, T* >::type
+Item* itemSelector(std::string prompt)
 {
 	char choice;
-	std::cout << "Select the item you would like to delete. Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
+	std::cout << "Select the item you would like to " << prompt << ". Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
 	std::cout << "1. Item name" << std::endl;
 	std::cout << "2. Category" << std::endl;
 	std::cout << "3. Display all Items" << std::endl;
@@ -228,7 +160,7 @@ void deleteOneItem()
 	std::vector<Item*>::iterator rivit;
 	switch (choice)
 	{
-	case '0': return;
+	case '0': return nullptr;
 		break;
 	case '1':
 		std::cout << "Enter the Item name: ";
@@ -245,10 +177,13 @@ void deleteOneItem()
 		break;
 	default:
 		std::cout << "Invalid Character" << std::endl;
-		return;
+		return nullptr;
 	}
 	if (resultItemVector.size() == 0)
+	{
 		std::cout << "No items found" << std::endl;
+		return nullptr;
+	}
 	else
 	{
 		int counter = 0;
@@ -258,19 +193,108 @@ void deleteOneItem()
 			(*rivit)->printItem();
 			std::cout << std::endl;
 		}
-		std::cout << "Enter the number of the item you want to delete or enter 0 to search again" << std::endl;
+		std::cout << "Enter the number of the item you want to " << prompt << " or enter 0 to search again" << std::endl;
 		std::cin >> choice;
-		if (choice == '0') return;
+		if (choice == '0') return nullptr;
 		else //unnecessary since if choice is 0, the following code wont run
 		{
 			int choiceInt = choice - '1';
 			resultItemVector.at(choiceInt)->printItem();
-			std::cout << "Are you sure you want to delete the item above? y/n" << std::endl;
-			std::string input;
-			std::cin >> input;
-			if (input == "y")
-				globalInventoryManager->deleteItem(resultItemVector.at(choiceInt));
+			return resultItemVector.at(choiceInt);
 		}
+	}
+}
+LoanableItem* loanableItemSelector(std::string prompt)
+{
+	char choice;
+	std::cout << "Select the item you would like to " << prompt << ". Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
+	std::cout << "1. Item name" << std::endl;
+	std::cout << "2. Category" << std::endl;
+	std::cout << "3. Display all Items" << std::endl;
+	std::cin >> choice;
+	std::vector<LoanableItem*> resultItemVector;
+	std::string searchKey;
+	std::vector<LoanableItem*>::iterator rivit;
+	switch (choice)
+	{
+	case '0': return nullptr;
+		break;
+	case '1':
+		std::cout << "Enter the Item name: ";
+		std::cin >> searchKey;
+		resultItemVector = globalInventoryManager->getLoanableItemsByName(searchKey);
+		break;
+	case '2':
+		std::cout << "Enter the Category: ";
+		std::cin >> searchKey;
+		resultItemVector = globalInventoryManager->getLoanableItemsByCategory(searchKey);
+		break;
+	case '3':
+		resultItemVector = globalInventoryManager->getAllLoanableItems();
+		break;
+	default:
+		std::cout << "Invalid Character" << std::endl;
+		return nullptr;
+	}
+	if (resultItemVector.size() == 0)
+	{
+		std::cout << "No items found" << std::endl;
+		return nullptr;
+	}
+	else
+	{
+		int counter = 0;
+		for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
+		{
+			std::cout << "Item " << ++counter << std::endl;
+			(*rivit)->printItem();
+			std::cout << std::endl;
+		}
+		std::cout << "Enter the number of the item you want to " << prompt << " or enter 0 to search again" << std::endl;
+		std::cin >> choice;
+		if (choice == '0') return nullptr;
+		else //unnecessary since if choice is 0, the following code wont run
+		{
+			int choiceInt = choice - '1';
+			resultItemVector.at(choiceInt)->printItem();
+			return resultItemVector.at(choiceInt);
+		}
+	}
+}
+void editItem()
+{
+	Item* resultItem = itemSelector("edit");
+	if (!resultItem) return; //if null, return
+	std::cout << "New name (enter 0 if you dont want to change) : ";
+	std::string input;
+	std::cin >> input;
+	if (input != "0")
+		resultItem->setName(input);
+		//globalInventoryManager->editItemName(resultItemVector.at(choiceInt), input);
+	std::cout << "New categories (comma delimited, no spaces) (enter 0 if you dont want to change): " << std::endl;
+	std::cin >> input;
+	if (input != "0")
+	{
+		std::vector<std::string*> *categories = categoriesStringToVector(input);
+		globalInventoryManager->editItemCategory(resultItem, *categories);
+		/*std::vector<std::string*>::iterator cit;
+		for (cit = categories->begin(); cit != categories->end(); ++cit) { *cit = globalInventoryManager->decideWithAllCategories(*cit); }
+		resultItemVector.at(choiceInt)->setCategories(*categories);*/
+	}
+	resultItem->printItem();
+}
+void deleteOneItem()
+{
+	Item* resultItem = itemSelector("delete");
+	if (!resultItem) return; //if null, return
+	std::cout << "Are you sure you want to delete the item above? y/n" << std::endl;
+	std::string input;
+	std::cin >> input;
+	if (input == "y")
+	{
+		std::string delItemName = resultItem->getName();
+		globalInventoryManager->deleteItem(resultItem);
+		std::cout << "You have deleted " << delItemName << ".";
 	}
 }
 void deleteItemsByCategory()
@@ -338,18 +362,34 @@ void deleteItem()
 		return;
 	}
 }
+void loanItem()
+{
+	LoanableItem* resultItem = loanableItemSelector("loan");
+	if (!resultItem) return; //if null, return
+	std::cout << std::endl << "Are you sure you want to " << (resultItem->isLoaned()?"return":"loan") << " the item above? y/n" << std::endl;
+	std::string input;
+	std::cin >> input;
+	if (input == "y")
+	{
+		resultItem->toggleLoan();
+		std::cout << "You have " << (resultItem->isLoaned() ? "loaned " : "returned ") << resultItem->getName() << "." << std::endl << std::endl << std::endl;
+		resultItem->printItem();
+	}
+}
 void repeatConfirmation(void (*func)(), std::string promptMessage)
 {
 
 	char repeat = 'y';
 	do
 	{
+		system("cls");
 		func();
 		std::cout << promptMessage << std::endl;
 		std::cin >> repeat;
 		repeat = tolower(repeat);
 	} while (repeat == 'y');
 }
+
 int main()
 {
 	bool testing = false;
@@ -357,8 +397,10 @@ int main()
 	{
 		globalInventory = new Inventory();
 		globalInventoryManager = new InventoryManager(*globalInventory);
-		addItem("placeholder", "category1,category2");
-		addItem("placeholder2", "category1,category2");
+		addItem("Excalibur", "category1,category2", true);
+		addItem("Elucidator", "category1,category2", true);
+		addItem("Dark Repulser", "category2,category3", false);
+		addItem("Lambent Light", "category2,category3", false);
 		char choice = NULL;
 		do
 		{
@@ -368,10 +410,10 @@ int main()
 			std::cout << "2. Add a new equipment (working, no error handling)" << std::endl;
 			std::cout << "3. Edit an existing equipment (not yet)" << std::endl;
 			std::cout << "4. Delete an existing equipment (not yet)" << std::endl;
-			std::cout << "5. Loan an existing equipment (not yet)" << std::endl;
+			std::cout << "5. Loan/Return an existing equipment (not yet)" << std::endl;
 			std::cout << "0. Exit (working)" << std::endl;
 			std::cin >> choice;
-			std::cout << "--------------------------------" << std::endl;
+			//std::cout << "--------------------------------" << std::endl;
 			switch (choice)
 			{
 			case '0':
@@ -388,6 +430,9 @@ int main()
 			case '4':
 				repeatConfirmation(deleteItem, "Delete another item? y/n");
 				break;
+			case '5':
+				repeatConfirmation(loanItem, "Loan/Return another item? y/n");
+				break;
 			default:
 				std::cout << "Invalid character" << std::endl;
 			}
@@ -399,16 +444,13 @@ int main()
 		//std::cin.ignore(); //for some reason, it needs 2 cin.ignore()
 		//std::cin.ignore();
 	}
-	//
-	//else
-	//{
-	//	// test codes here
-	//	int key = 0;
-	//	do
-	//	{
-	//		key = _getch();
-	//		std::cout << key << std::endl;
-	//	} while (key != 0);
-	//}
+	
+	else
+	{
+		// test codes here
+		/*f("uno");
+		f("quattro");
+		cin.ignore();*/
+	}
 	return 0;
 }

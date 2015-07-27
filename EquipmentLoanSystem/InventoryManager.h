@@ -2,15 +2,19 @@
 
 #include <string>
 #include "Inventory.h"
+#include "LoanableItem.h"
 
 class InventoryManager
 {
 public:
 	InventoryManager(Inventory &inventory);
 	std::vector<Item*> getItemsByName(std::string searchKey);
+	std::vector<LoanableItem*> getLoanableItemsByName(std::string searchKey);
 	std::vector<Item*> getItemsByCategory(std::string searchKey);
+	std::vector<LoanableItem*> getLoanableItemsByCategory(std::string searchKey);
 	std::vector<Item*> getAllItems();
-	void addItem(std::string &name, std::vector<std::string*> &category);
+	std::vector<LoanableItem*> getAllLoanableItems();
+	void addItem(std::string &name, std::vector<std::string*> &category, bool isLoanable);
 	void editItemName(Item *item, std::string name);
 	void editItemCategory(Item *item, std::vector<std::string*> &name);
 	void deleteItem(Item *item);
@@ -18,6 +22,9 @@ public:
 	std::string* decideWithAllCategories(std::string* category);
 private:
 	Inventory *inventory;
+	//method to sort item vectors by its name
+	void sort(std::vector<Item*> &itemVector);
+	std::vector<LoanableItem*> getLoanableItemsFromItems(std::vector<Item*> itemVector);
 	//class to store each category string and its matching items
 	class CategoryItems
 	{
