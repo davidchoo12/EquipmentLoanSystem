@@ -1,0 +1,7 @@
+Excalibur;Sword,Holy,Legendary,Kirito;true;
+Elucidator;Sword,Dark,Kirito;true;
+Dark Repulser;Sword,Dark,Kirito;false;
+Lambent Light;Sword,Holy,Asuna;false;
+Ian Soo;Human,Dark Lord,Boss,Enemy;true;
+Foo Bar;Nonexistent;false;
+Lorem Ipsum;Nonexistent;false;
