@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ctime>
 #include "Item.h"
+#include <Windows.h>
 
 Item::Item(std::string name, std::vector<std::string*> &category)
 {
@@ -45,7 +46,10 @@ void Item::f(const char *s) const
 }
 void Item::printItem() const
 {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 252);
 	f((Item::name + " (Unloanable)").c_str());
+	SetConsoleTextAttribute(hConsole, 15);
 	std::cout << "Categories: ";
 	Item::itemCategories->displayAll();
 	std::cout << "Time Created: " << Item::timeCreated << std::endl;

@@ -22,6 +22,7 @@ Category::Category()
 Category::Category(std::vector<std::string*> &categoryVector)
 {
 	Category::categoryVector = &categoryVector;
+	std::sort(Category::categoryVector->begin(), Category::categoryVector->end(), alphabeticalAscending);
 }
 void Category::displayAll() const
 {
