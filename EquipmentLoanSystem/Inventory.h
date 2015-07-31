@@ -1,3 +1,9 @@
+//*************************************************************
+// Author: David Choo
+// 
+// class Inventory.h
+// This class acts as a database that stores a list of items and a list of categories of the items.
+//*************************************************************
 #pragma once
 
 #include <string>
@@ -7,59 +13,30 @@
 class Inventory
 {
 public:
+	//Default constructor
+	//Postcondition: initialises itemCollection and globalCategories
 	Inventory();
-	int size() const; //might be used
-	void displayAll() const;
+
+	//Function to add an item into the inventory
+	//Postcondition: the item is added into the itemCollection list
 	void add(Item *item);
-	void displaySearch(std::string &searchKey);
-	void displaySearchByCategory(std::string &searchKey);
-	Category* getAllCategories() const; //might be used
-	/*for choosing which pointer to the category string to use,
-	if the category string pointer is alr in the global category then return the pointer in global category
-	else add the category string pointer to the global category and return the original category string pointer
-	*/
-	std::string* decideWithAllCategories(std::string* category);
+
+	//Function to return the items with a name containing the argument's searchKey
+	//Postcondition: the itemCollection is traversed to compare each item's name with searchKey
 	std::vector<Item*> getItemsByName(std::string &searchKey);
-	//std::vector<Item*> Inventory::getItemsByCategory(std::string &searchKey);
+
+	//Function to return all the items as a vector
+	//Postcondition: the itemCollection is traversed to add every item into a vector which is then returned
 	std::vector<Item*> getAllItems();
+
+	//Function to return the globalCategories
+	//Postcondition: the globalCategories pointer is returned
+	Category* getAllCategories() const;
+
+	//Function to delete an item from the inventory
+	//Postcondition: the item is removed from the itemCollection list
 	void deleteItem(Item *item);
-	//friend void setItemCategory(Item *item, std::vector<std::string*> *category);
 private:
 	std::list<Item*> *itemCollection;
 	Category *globalCategories;
-	//class to store each category string and its matching items
-	//struct CategoryItems
-	//{
-	//public:
-	//	CategoryItems(std::string *category);
-	//	std::string *category;
-	//	std::vector<Item*> *items;
-	//};
-	////categoryItemsVector will be a helping object for recording the items with the same categories
-	//std::vector<CategoryItems> *categoryItemsVector;
-	//CategoryItems* searchCategory(std::string *category)
-	//{
-	//	std::vector<CategoryItems>::iterator ciit;
-	//	for (ciit = categoryItemsVector->begin(); ciit != categoryItemsVector->end(); ciit++)
-	//	{
-	//		if (ciit->category == category) return &*ciit;
-	//	}
-	//}
-	//std::vector<CategoryItems*> searchItemFromCategoryItems(Item *item)
-	//{
-	//	std::vector<CategoryItems*> *result = new std::vector<CategoryItems*>();
-	//	std::vector<CategoryItems>::iterator ciit;
-	//	std::vector<Item*>::iterator iit;
-	//	for (ciit = categoryItemsVector->begin(); ciit != categoryItemsVector->end(); ciit++)
-	//	{
-	//		for (iit = ciit->items->begin(); iit != ciit->items->end(); iit++)
-	//		{
-	//			if (*iit == item)
-	//			{
-	//				result->push_back(&*ciit);
-	//			}
-	//		}
-	//	}
-	//	return *result;
-	//}
 };

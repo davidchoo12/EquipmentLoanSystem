@@ -90,6 +90,7 @@ void InventoryManager::addItem(std::string &name, std::vector<std::string*> &cat
 	Item *toBeAdded;
 	if (isLoanable)
 	{
+		//polymorphism here
 		toBeAdded = new LoanableItem(name, category);
 		InventoryManager::inventory->add(toBeAdded);
 	}
@@ -111,12 +112,9 @@ void InventoryManager::addItem(std::string &name, std::vector<std::string*> &cat
 		}
 	}
 }
-void InventoryManager::editItemName(Item *item, std::string name)
-{
-	item->setName(name);
-}
 void InventoryManager::editItemCategory(Item *item, std::vector<std::string*> &categories)
 {
+	//LOGIC
 	//1. if any of the string from categories is found in the item, remove the string from categories
 	//2. remove any other category strings from item Category
 	//3. add all strings left in categories into item Category
@@ -208,16 +206,6 @@ void InventoryManager::deleteItem(Item *item)
 	inventory->deleteItem(item);
 	delete item;
 }
-//void InventoryManager::deleteItemsOfCategory(std::string *category)
-//{
-//	CategoryItems *ci = getCategoryItemsByCategory(category);
-//	std::vector<Item*>::iterator iit;
-//	for (iit = ci->items->begin(); iit != ci->items->end(); iit++)
-//	{
-//		deleteItem(*iit);
-//	}
-//	delete ci;
-//}
 std::string* InventoryManager::decideWithAllCategories(std::string* category)
 {
 	Category *globalCategories = InventoryManager::inventory->getAllCategories();
@@ -245,4 +233,58 @@ InventoryManager::CategoryItems::CategoryItems(std::string *category)
 {
 	InventoryManager::CategoryItems::category = category;
 	InventoryManager::CategoryItems::items = new std::vector<Item*>();
+}
+void InventoryManager::CategoryItems::removeItem(Item *item)
+{
+	std::vector<Item*>::iterator it = find(items->begin(), items->end(), item);
+	if (it != items->end())
+		items->erase(it);
+	else
+		std::cout << "Item not found in the CategoryItems" << std::endl;
+}
+InventoryManager::CategoryItems* InventoryManager::getCategoryItemsByCategory(std::string *category)
+{
+	std::vector<CategoryItems*>::iterator ciit;
+	for (ciit = categoryItemsVector->begin(); ciit != categoryItemsVector->end(); ciit++)
+	{
+		if ((*ciit)->category == category) return *ciit;
+	}
+	return nullptr;
+}
+std::vector<InventoryManager::CategoryItems*> InventoryManager::getCategoryItemsByItem(Item *item)
+{
+	std::vector<CategoryItems*> *result = new std::vector<CategoryItems*>();
+	std::vector<CategoryItems*>::iterator ciit;
+	std::vector<std::string*>::iterator cit;
+	std::vector<Item*>::iterator iit;
+	for (ciit = categoryItemsVector->begin(); ciit != categoryItemsVector->end(); ciit++)
+	{
+		for (cit = item->getCategories().getCategoryVector()->begin(); cit != item->getCategories().getCategoryVector()->end(); cit++)
+		{
+			if ((*ciit)->category == *cit)
+			{
+				for (iit = (*ciit)->items->begin(); iit != (*ciit)->items->end(); iit++)
+				{
+					if (*iit == item)
+					{
+						result->push_back(*ciit);
+					}
+				}
+			}
+		}
+	}
+	return *result;
+}
+void InventoryManager::removeCategoryItems(CategoryItems* ci)
+{
+	std::vector<CategoryItems*>::iterator ciit;
+	for (ciit = categoryItemsVector->begin(); ciit != categoryItemsVector->end(); ciit++)
+	{
+		if (*ciit == ci)
+		{
+			categoryItemsVector->erase(ciit);
+			delete ci;
+			return;
+		}
+	}
 }

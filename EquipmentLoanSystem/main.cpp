@@ -13,67 +13,88 @@
 #include <stdlib.h>
 #include <Windows.h>
 #include <fstream>
-//#include <conio.h>
 
 Inventory *globalInventory;
 InventoryManager *globalInventoryManager;
-static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); //for colours
+//colour codes:
+//7 grey on black (original)
+//15 white on black
+//10 green on black
+//12 red on black
 
-void searchItem()
-{/*
-	char repeat = 'y';
-	do
-	{*/
-		const char* choice;
-		std::cout << "Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
-		std::cout << "1. Item name" << std::endl;
-		std::cout << "2. Category" << std::endl;
-		std::cout << "3. Display all Items" << std::endl;
-		std::string in;
-		std::getline(cin, in);
-		choice = in.c_str();
-		std::vector<Item*> resultItemVector;
-		std::string searchKey;
-		switch (*choice)
-		{
-		case '0': return;
-			break;
-		case '1':
-			std::cout << "Enter the Item name: ";
-			std::getline(cin, searchKey);
-			resultItemVector = globalInventoryManager->getItemsByName(searchKey);
-			break;
-		case '2':
-			std::cout << "Enter the Category: ";
-			std::getline(cin, searchKey);
-			resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
-			break;
-		case '3': resultItemVector = globalInventoryManager->getAllItems();
-			break;
-		default:
-			std::cout << "Invalid Char" << std::endl;
-			return;
-		}
-		// to print out resultItemVector items
-		if (resultItemVector.size() == 0)
-			std::cout << "No item found." << std::endl;
-		else
-		{
-			std::cout << "Total Items: " << resultItemVector.size() << std::endl;
-			std::vector<Item*>::iterator rivit;
-			for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
-			{
-				(*rivit)->printItem();
-				std::cout << std::endl;
-			}
-		}/*
-		
-		repeatConfirmation:
-		std::cout << "Search another item again? y/n" << std::endl;
-		std::cin >> repeat;
-		repeat = tolower(repeat);
-	} while (repeat == 'y');*/
+//helper method to get character within the applicableChars (error handling)
+char getValidatedChar(std::string applicableChars)
+{
+	char c;
+	std::string input;
+	std::stringstream ss;
+	std::getline(std::cin, input);
+	ss << input;
+	bool canConvert, isApplicable;
+	canConvert = bool(ss >> c);
+	isApplicable = !(applicableChars.find(c) == std::string::npos);
+	while (!canConvert || !isApplicable)//while the input is not 1 character and the inputted char is not in the string, meaning its not valid
+	{
+		std::cout << "Invalid character, please enter either of these characters: ";
+		std::string::iterator sit;
+		for (sit = applicableChars.begin(); sit != applicableChars.end(); sit++)
+			std::cout << *sit << (*sit == applicableChars.back() ? "" : ", ");
+		std::cout << std::endl;
+		std::getline(std::cin, input);
+		ss = std::stringstream();
+		ss << input;
+		canConvert = bool(ss >> c);
+		isApplicable = !(applicableChars.find(c) == std::string::npos);
+	}
+	return c;
 }
+//interface method to search item
+void searchItem()
+{
+	char choice;
+	std::cout << "Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
+	std::cout << "1. Item name" << std::endl;
+	std::cout << "2. Category" << std::endl;
+	std::cout << "3. Display all Items" << std::endl;
+	choice = getValidatedChar("0123");
+	std::vector<Item*> resultItemVector;
+	std::string searchKey;
+	switch (choice)
+	{
+	case '0': return;
+		break;
+	case '1':
+		std::cout << "Enter the Item name: ";
+		std::getline(std::cin, searchKey);
+		resultItemVector = globalInventoryManager->getItemsByName(searchKey);
+		break;
+	case '2':
+		std::cout << "Enter the Category: ";
+		std::getline(std::cin, searchKey);
+		resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
+		break;
+	case '3': resultItemVector = globalInventoryManager->getAllItems();
+		break;
+	default:
+		std::cout << "Invalid Char" << std::endl;
+		return;
+	}
+	// to print out resultItemVector items
+	if (resultItemVector.size() == 0)
+		std::cout << "No item found." << std::endl;
+	else
+	{
+		std::cout << "Total Items: " << resultItemVector.size() << std::endl;
+		std::vector<Item*>::iterator rivit;
+		for (rivit = resultItemVector.begin(); rivit != resultItemVector.end(); ++rivit)
+		{
+			(*rivit)->printItem();
+			std::cout << std::endl;
+		}
+	}
+}
+//used to convert comma delimited strings to string vector
 std::vector<std::string*>* categoriesStringToVector(std::string commaDelimitedCategories)
 {
 	commaDelimitedCategories += ","; // so that the last categoryInput can be obtained (just a simple workaround)
@@ -102,109 +123,64 @@ std::vector<std::string*>* categoriesStringToVector(std::string commaDelimitedCa
 	}
 	return categoriesFromInput;
 }
-
+//interface method to add item
 void addItem()
-{/*
-	char repeat = 'y';
-	do
-	{*/
-		std::string nameInput;
-		std::string categoryInput;
-		std::string isLoanable;
-		std::cout << "Please enter item details" << std::endl;
-		std::cout << "Name (without spaces, not working with spaces yet) (enter 0 to go back): ";
-		std::getline(cin, nameInput);
-		if (nameInput == "0") return;
-		std::cout << "Category: (use commas to delimit multiple values, no spaces in after commas)" << std::endl;
-		std::getline(cin, categoryInput);
-		std::cout << "Is the item loanable? y/n";
-		std::getline(cin, isLoanable);
-		std::string confirm;
-		std::cout << "Are you sure? y/n" << std::endl;
-		std::getline(cin, confirm);
-		confirm = tolower(confirm[0]);
-		if (confirm == "y")
-		{
-			std::vector<std::string*> *categoriesFromInput = categoriesStringToVector(categoryInput);
-			globalInventoryManager->addItem(nameInput, *categoriesFromInput, (isLoanable=="y"));
-			std::cout << "Item " << nameInput << " is added" << std::endl;
-		}
-		else if (confirm == "n")
-			std::cout << "You canceled adding " << nameInput << std::endl;
-		else
-			std::cout << "Invalid char" << std::endl;/*
-		repeatConfirmation:
-		std::cout << "Add another item again? y/n" << std::endl;
-		std::cin >> repeat;
-		repeat = tolower(repeat);
-	} while (repeat == 'y');*/
+{
+	std::string nameInput;
+	std::string categoryInput;
+	char isLoanable;
+	char confirm;
+	std::cout << "Please enter item details" << std::endl;
+	std::cout << "Name (without spaces, not working with spaces yet) (enter 0 to go back): ";
+	std::getline(std::cin, nameInput);
+	if (nameInput == "0") return;
+	std::cout << "Category: (use commas to delimit multiple values, no spaces in after commas)" << std::endl;
+	std::getline(std::cin, categoryInput);
+	std::cout << "Is the item loanable? y/n" << std::endl;
+	isLoanable = getValidatedChar("yn");
+	std::cout << "Are you sure? y/n" << std::endl;
+	confirm = getValidatedChar("yn");
+	if (confirm == 'y')
+	{
+		std::vector<std::string*> *categoriesFromInput = categoriesStringToVector(categoryInput);
+		globalInventoryManager->addItem(nameInput, *categoriesFromInput, (isLoanable == 'y'));
+		std::cout << "Item " << nameInput << " is added" << std::endl;
+	}
+	else if (confirm == 'n')
+		std::cout << "You canceled adding " << nameInput << std::endl;
+	else
+		std::cout << "Invalid char" << std::endl;
 }
+//overloaded method to add item without interface
 void addItem(std::string itemName, std::string categories, bool isLoanable)
 {
 	std::vector<std::string*> *categoriesFromInput = categoriesStringToVector(categories);
 	globalInventoryManager->addItem(itemName, *categoriesFromInput, isLoanable);
 }
-void addItemsFromFile(std::string fileLocation)
-{
-	std::ifstream data(fileLocation);
-	std::string line;
-	if (data.is_open())
-	{
-		while (getline(data, line))
-		{
-			size_t pos = 0;
-			std::string token;
-			std::vector<std::string> *itemParams = new std::vector<std::string>();
-			while ((pos = line.find(";")) != std::string::npos)
-			{
-				token = line.substr(0, pos);
-				itemParams->push_back(token);
-				//as each category is added, it is erased from the input string
-				line.erase(0, pos + 1);
-			}
-			if (itemParams->size() == 3) //because there is only 3 params for addItem
-				addItem(itemParams->at(0), itemParams->at(1), (itemParams->at(2) == "true"));
-		}
-		data.close();
-	}
-}
-//template <class T>
-//struct TypeIsItem
-//{
-//	static const bool value = false;
-//};
-//template <>
-//struct TypeIsItem<Item>
-//{
-//	static const bool value = true;
-//};
-//template<class T>
-//typename std::enable_if < std::is_same<Item, T>::value || std::is_same<LoanableItem, T>::value, T* >::type
+//interface to select non loanable item
 Item* itemSelector(std::string prompt)
 {
-	const char* choice;
+	char choice;
 	std::cout << "Select the item you would like to " << prompt << ". Do you want to search by Item name or Category or display all items? (enter 0 to go back)" << std::endl;
 	std::cout << "1. Item name" << std::endl;
 	std::cout << "2. Category" << std::endl;
 	std::cout << "3. Display all Items" << std::endl;
-	std::string in;
-	std::getline(cin, in);
-	choice = in.c_str();
+	choice = getValidatedChar("123");
 	std::vector<Item*> resultItemVector;
 	std::string searchKey;
 	std::vector<Item*>::iterator rivit;
-	switch (*choice)
+	switch (choice)
 	{
 	case '0': return nullptr;
 		break;
 	case '1':
 		std::cout << "Enter the Item name: ";
-		std::getline(cin, searchKey);
+		std::getline(std::cin, searchKey);
 		resultItemVector = globalInventoryManager->getItemsByName(searchKey);
 		break;
 	case '2':
 		std::cout << "Enter the Category: ";
-		std::getline(cin, searchKey);
+		std::getline(std::cin, searchKey);
 		resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
 		break;
 	case '3':
@@ -229,34 +205,36 @@ Item* itemSelector(std::string prompt)
 			std::cout << std::endl;
 		}
 		std::cout << "Enter the number of the item you want to " << prompt << " or enter 0 to search again" << std::endl;
-		/*int c;
+		std::string input;
+		const char* selection;
+		int c;
+		std::stringstream ss;
+		bool validInput;
 		do
 		{
-			c = getchar();
-			putchar(c);
-			if (c == '0') return nullptr;
-			else
+			std::getline(std::cin, input);
+			selection = input.c_str();
+			if (*selection == '0') return nullptr;
+			else //unnecessary since if choice is 0, the following code wont run
 			{
-				c--;
-				resultItemVector.at(c)->printItem();
-				return resultItemVector.at(c);
+				ss << selection;
+				validInput = bool(ss >> c) && (c >= 1 && c <= resultItemVector.size());
+				if (validInput)
+				{
+					resultItemVector.at(--c)->printItem();
+					return resultItemVector.at(c);
+				}
+				else
+				{
+					std::cout << "Please enter a number from the item list." << std::endl;
+				}
+				ss = std::stringstream(); //to clear the stringstream
 			}
-			std::cout << std::endl << "Invalid character, try again" << std::endl;
-		} while (c != '1');*/
-		std::getline(cin, in);
-		choice = in.c_str();
-		if (*choice == '0') return nullptr;
-		else //unnecessary since if choice is 0, the following code wont run
-		{
-			int c;
-			std::stringstream ss;
-			ss << choice;
-			ss >> c;
-			resultItemVector.at(--c)->printItem();
-			return resultItemVector.at(c);
-		}
+		} while (!validInput);
 	}
+	return nullptr; //unnecessary because code wont reach here but compiler claims "not all control paths return a value"
 }
+//interface to select loanable item
 LoanableItem* loanableItemSelector(std::string prompt)
 {
 	const char* choice;
@@ -265,7 +243,7 @@ LoanableItem* loanableItemSelector(std::string prompt)
 	std::cout << "2. Category" << std::endl;
 	std::cout << "3. Display all Items" << std::endl;
 	std::string in;
-	std::getline(cin, in);
+	std::getline(std::cin, in);
 	choice = in.c_str();
 	std::vector<LoanableItem*> resultItemVector;
 	std::string searchKey;
@@ -276,12 +254,12 @@ LoanableItem* loanableItemSelector(std::string prompt)
 		break;
 	case '1':
 		std::cout << "Enter the Item name: ";
-		getline(cin, searchKey);
+		getline(std::cin, searchKey);
 		resultItemVector = globalInventoryManager->getLoanableItemsByName(searchKey);
 		break;
 	case '2':
 		std::cout << "Enter the Category: ";
-		getline(cin, searchKey);
+		getline(std::cin, searchKey);
 		resultItemVector = globalInventoryManager->getLoanableItemsByCategory(searchKey);
 		break;
 	case '3':
@@ -306,62 +284,75 @@ LoanableItem* loanableItemSelector(std::string prompt)
 			std::cout << std::endl;
 		}
 		std::cout << "Enter the number of the item you want to " << prompt << " or enter 0 to search again" << std::endl;
-		std::getline(cin, in);
-		choice = in.c_str();
-		if (*choice == '0') return nullptr;
-		else //unnecessary since if choice is 0, the following code wont run
+		std::string input;
+		const char* selection;
+		int c;
+		std::stringstream ss;
+		bool validInput;
+		do
 		{
-			int c;
-			std::stringstream ss;
-			ss << choice;
-			ss >> c;
-			resultItemVector.at(--c)->printItem();
-			return resultItemVector.at(c);
-		}
+			std::getline(std::cin, input);
+			selection = input.c_str();
+			if (*selection == '0') return nullptr;
+			else //unnecessary since if choice is 0, the following code wont run
+			{
+				ss << selection;
+				validInput = bool(ss >> c) && (c >= 1 && c <= resultItemVector.size());
+				if (validInput)
+				{
+					resultItemVector.at(--c)->printItem();
+					return resultItemVector.at(c);
+				}
+				else
+				{
+					std::cout << "Please enter a number from the item list." << std::endl;
+				}
+				ss = std::stringstream(); //to clear the stringstream
+			}
+		} while (!validInput);
 	}
+	return nullptr; //unnecessary because code wont reach here but compiler claims "not all control paths return a value"
 }
+//interface method to edit item
 void editItem()
 {
 	Item* resultItem = itemSelector("edit");
 	if (!resultItem) return; //if null, return
 	std::cout << "New name (enter 0 if you dont want to change) : ";
 	std::string input;
-	std::getline(cin, input);
+	std::getline(std::cin, input);
 	if (input != "0")
 		resultItem->setName(input);
-		//globalInventoryManager->editItemName(resultItemVector.at(choiceInt), input);
 	std::cout << "New categories (comma delimited, no spaces) (enter 0 if you dont want to change): " << std::endl;
-	std::getline(cin, input);
+	std::getline(std::cin, input);
 	if (input != "0")
 	{
 		std::vector<std::string*> *categories = categoriesStringToVector(input);
 		globalInventoryManager->editItemCategory(resultItem, *categories);
-		/*std::vector<std::string*>::iterator cit;
-		for (cit = categories->begin(); cit != categories->end(); ++cit) { *cit = globalInventoryManager->decideWithAllCategories(*cit); }
-		resultItemVector.at(choiceInt)->setCategories(*categories);*/
 	}
 	resultItem->printItem();
 }
+//sub interface to delete 1 item
 void deleteOneItem()
 {
 	Item* resultItem = itemSelector("delete");
 	if (!resultItem) return; //if null, return
 	std::cout << "Are you sure you want to delete the item above? y/n" << std::endl;
-	std::string input;
-	std::getline(cin, input);
-	if (input == "y")
+	char input = getValidatedChar("yn");
+	if (input == 'y')
 	{
 		std::string delItemName = resultItem->getName();
 		globalInventoryManager->deleteItem(resultItem);
-		std::cout << "You have deleted " << delItemName << ".";
+		std::cout << "You have deleted " << delItemName << "." <<std::endl;
 	}
 }
+//sub interface to delete all items in a category
 void deleteItemsByCategory()
 {
 	std::string searchKey;
 	std::vector<Item*> resultItemVector;
 	std::cout << "Enter the Category: ";
-	std::getline(cin, searchKey);
+	std::getline(std::cin, searchKey);
 	resultItemVector = globalInventoryManager->getItemsByCategory(searchKey);
 	if (resultItemVector.size() == 0)
 		std::cout << "No items found" << std::endl;
@@ -374,41 +365,42 @@ void deleteItemsByCategory()
 			std::cout << std::endl;
 		}
 		std::cout << "Are you sure you want to delete all the items of " << searchKey << "? y/n" << std::endl;
-		std::string input;
-		std::getline(cin, input);
-		if (input == "y")
+		char input = getValidatedChar("yn");
+		if (input == 'y')
 		{
 			std::vector<Item*>::iterator iit;
 			for (iit = resultItemVector.begin(); iit != resultItemVector.end(); iit++)
 				globalInventoryManager->deleteItem(*iit);
 		}
+		std::cout << "You have deleted all items of category " << searchKey << "." << std::endl;
 	}
 }
+//sub interface to delete all items in the inventory
 void deleteAllItems()
 {
-	std::string input;
+	char input;
 	std::vector<Item*> resultItemVector;
-	std::cout << "Are you sure you want to delete all the items in the inventory? y/n";
-	std::getline(cin, input);
-	if (input == "y")
+	std::cout << "Are you sure you want to delete all the items in the inventory? y/n" << std::endl;
+	input = getValidatedChar("yn");
+	if (input == 'y')
 	{
 		resultItemVector = globalInventoryManager->getAllItems();
 		std::vector<Item*>::iterator iit;
 		for (iit = resultItemVector.begin(); iit != resultItemVector.end(); iit++)
 			globalInventoryManager->deleteItem(*iit);
+		std::cout << "You have deleted all items in the inventory." << std::endl;
 	}
 }
+//interface to delete items
 void deleteItem()
 {
-	const char* choice;
+	char choice;
 	std::cout << "Would you like to delete one item or all items of a category or all items in the inventory? (enter 0 to go back)" << std::endl;
 	std::cout << "1. One Item" << std::endl;
 	std::cout << "2. All Items of a Category" << std::endl;
 	std::cout << "3. All Items in the Inventory" << std::endl;
-	std::string in;
-	std::getline(cin, in);
-	choice = in.c_str();
-	switch (*choice)
+	choice = getValidatedChar("123");
+	switch (choice)
 	{
 	case '0': return;
 		break;
@@ -423,33 +415,61 @@ void deleteItem()
 		return;
 	}
 }
+//interface to loan items
 void loanItem()
 {
 	LoanableItem* resultItem = loanableItemSelector("loan");
 	if (!resultItem) return; //if null, return
 	std::cout << std::endl << "Are you sure you want to " << (resultItem->isLoaned()?"return":"loan") << " the item above? y/n" << std::endl;
-	std::string input;
-	std::getline(cin, input);
-	if (input == "y")
+	char input = getValidatedChar("yn");
+	if (input == 'y')
 	{
 		resultItem->toggleLoan();
 		std::cout << "You have " << (resultItem->isLoaned() ? "loaned " : "returned ") << resultItem->getName() << "." << std::endl << std::endl << std::endl;
 		resultItem->printItem();
+		std::cout << std::endl;
 	}
 }
+//method for quitting confirmation loop
 void repeatConfirmation(void (*func)(), std::string promptMessage)
 {
-
-	std::string repeat = "y";
+	char repeat = 'y';
 	do
 	{
 		system("cls");
 		func();
 		std::cout << promptMessage << std::endl;
-		std::getline(cin, repeat);
-		repeat = tolower(repeat[0]);
-	} while (repeat == "y");
+		repeat = getValidatedChar("yn");
+	} while (repeat == 'y');
 }
+
+//FILE IO
+//method to load the saved items in file
+void loadFromFile(std::string fileLocation)
+{
+	std::ifstream data(fileLocation);
+	std::string line;
+	if (data.is_open())
+	{
+		while (getline(data, line))
+		{
+			size_t pos = 0;
+			std::string token;
+			std::vector<std::string> *itemParams = new std::vector<std::string>();
+			while ((pos = line.find(";")) != std::string::npos)
+			{
+				token = line.substr(0, pos);
+				itemParams->push_back(token);
+				//as each category is added, it is erased from the input string
+				line.erase(0, pos + 1);
+			}
+			if (itemParams->size() == 3) //because there is only 3 params for addItem
+				addItem(itemParams->at(0), itemParams->at(1), (itemParams->at(2) == "true"));
+		}
+		data.close();
+	}
+}
+//method to save all items to file
 void saveToFile()
 {
 	std::vector<Item*> allItems = globalInventoryManager->getAllItems();
@@ -460,8 +480,8 @@ void saveToFile()
 		for (aiit = allItems.begin(); aiit != allItems.end(); aiit++)
 		{
 			data << (*aiit)->getName() << ";";
-			std::vector<string*> *categories = (*aiit)->getCategories().getCategoryVector();
-			std::vector<string*>::iterator cit;
+			std::vector<std::string*> *categories = (*aiit)->getCategories().getCategoryVector();
+			std::vector<std::string*>::iterator cit;
 			for (cit = categories->begin(); cit != categories->end(); cit++)
 			{
 				data << **cit << (cit == categories->end() - 1 ? ";" : ",");
@@ -476,88 +496,61 @@ void saveToFile()
 		}
 	}
 }
+
+//MAIN
 int main()
 {
-	bool testing = false;
-	if (!testing)
+	globalInventory = new Inventory();
+	globalInventoryManager = new InventoryManager(*globalInventory);
+	loadFromFile("data.txt");
+	SetConsoleTextAttribute(hConsole, 15);
+	char choice;
+	char exitConfirm;
+	do
 	{
-		globalInventory = new Inventory();
-		globalInventoryManager = new InventoryManager(*globalInventory);
-		addItemsFromFile("data.txt");/*
-		addItem("Excalibur", "category1,category2", true);
-		addItem("Elucidator", "category1,category2", true);
-		addItem("Dark Repulser", "category2,category3", false);
-		addItem("Lambent Light", "category2,category3", false);*/
-		//CONSOLE_SCREEN_BUFFER_INFO *ConsoleInfo = new CONSOLE_SCREEN_BUFFER_INFO();
-		//GetConsoleScreenBufferInfo(hConsole, ConsoleInfo);
-		//WORD OriginalColors = ConsoleInfo->wAttributes;
-		//int k;
-		//for (k = 1; k < 255; k++)
-		//{
-		//	// pick the colorattribute k you want
-		//	SetConsoleTextAttribute(hConsole, k);
-		//	cout << k << " SO FABULOUS!" << endl;
-		//}
-		//7 original = grey on black
-		//15 white on black
-		//10 green on black
-		//12 red on black
-		SetConsoleTextAttribute(hConsole, 15);
-		const char* choice = NULL;
-		int a;
-		do
+		std::cout << "Welcome to EquipmentLoanSystem v1.0 by David Choo :)" << std::endl;
+		std::cout << "What would you like to do?" << std::endl;
+		std::cout << "1. Search for an existing equipment" << std::endl;
+		std::cout << "2. Add a new equipment" << std::endl;
+		std::cout << "3. Edit an existing equipment" << std::endl;
+		std::cout << "4. Delete an existing equipment" << std::endl;
+		std::cout << "5. Loan/Return an existing equipment" << std::endl;
+		std::cout << "0. Exit" << std::endl;
+		choice = getValidatedChar("123450");
+		switch (choice)
 		{
-			//system("Color 1B");
-			std::cout << "Welcome to EquipmentLoanSystem v1.0 by David Choo :)" << std::endl;
-			std::cout << "What would you like to do?" << std::endl;
-			std::cout << "1. Search for an existing equipment (working, no error handling)" << std::endl;
-			std::cout << "2. Add a new equipment (working, no error handling)" << std::endl;
-			std::cout << "3. Edit an existing equipment (not yet)" << std::endl;
-			std::cout << "4. Delete an existing equipment (not yet)" << std::endl;
-			std::cout << "5. Loan/Return an existing equipment (not yet)" << std::endl;
-			std::cout << "0. Exit (working)" << std::endl;
-			std::string in;
-			std::getline(cin, in);
-			choice = in.c_str();
-			//std::cout << "--------------------------------" << std::endl;
-			switch (*choice)
-			{
-			case '0':
-				saveToFile();
-				break;
-			case '1':
-				repeatConfirmation(searchItem, "Search another item? y/n");
-				break;
-			case '2':
-				repeatConfirmation(addItem, "Add another item? y/n");
-				break;
-			case '3':
-				repeatConfirmation(editItem, "Edit another item? y/n");
-				break;
-			case '4':
-				repeatConfirmation(deleteItem, "Delete another item? y/n");
-				break;
-			case '5':
-				repeatConfirmation(loanItem, "Loan/Return another item? y/n");
-				break;
-			default:
-				std::cout << "Invalid character" << std::endl;
-			}
+		case '0':
 			system("cls");
-			a = atoi(choice);
-		} while (a != 0); //for some reason choice* != '0' and choice[0] != '0' doesnt work
-		//TODO implement Are you sure you want to exit
-		//std::cout << "Bye bye (Enter again to exit)" << std::endl;
-		//std::cin.ignore(); //for some reason, it needs 2 cin.ignore()
-		//std::cin.ignore();
-	}
-	
-	else
-	{
-		// test codes here
-		/*f("uno");
-		f("quattro");
-		cin.ignore();*/
-	}
+			SetConsoleTextAttribute(hConsole, 252);
+			std::cout << "Are you sure you want to exit? y/n" << std::endl;
+			exitConfirm = getValidatedChar("yn");
+			if (exitConfirm == 'y')
+				saveToFile();
+			else
+			{
+				choice = NULL;
+				SetConsoleTextAttribute(hConsole, 15);
+			}
+			break;
+		case '1':
+			repeatConfirmation(searchItem, "Search another item? y/n");
+			break;
+		case '2':
+			repeatConfirmation(addItem, "Add another item? y/n");
+			break;
+		case '3':
+			repeatConfirmation(editItem, "Edit another item? y/n");
+			break;
+		case '4':
+			repeatConfirmation(deleteItem, "Delete another item? y/n");
+			break;
+		case '5':
+			repeatConfirmation(loanItem, "Loan/Return another item? y/n");
+			break;
+		default:
+			std::cout << "Invalid character" << std::endl;
+		}
+		system("cls");
+	} while (choice != '0');
 	return 0;
 }
